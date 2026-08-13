@@ -55,11 +55,13 @@ $err
     <legend>Participante</legend>
     <label>Nombre y apellidos del participante <input name="participante" value="$pnom" required maxlength="120"></label>
     <div class="radios">
-      <span>¿Quién participa?</span>
-      <label><input type="radio" name="ambito" value="adulto" checked> Yo (adulto)</label>
-      <label><input type="radio" name="ambito" value="infantil"> Un menor a mi cargo</label>
+      <span>¿Es menor de edad?</span>
+      <label><input type="radio" name="es_menor" value="0" checked> No (adulto/a)</label>
+      <label><input type="radio" name="es_menor" value="1"> Sí, es menor de 18</label>
     </div>
-    <label>Edad (solo si es menor) <input type="number" name="edad" min="1" max="17"></label>
+    <label>Edad (si es menor) <input type="number" name="edad" min="1" max="17"></label>
+    <p class="note">Los <strong>jóvenes de 15 a 17 años</strong> que juegan con los adultos: marca "Sí, es menor",
+    pon su edad y elige las <strong>actividades de adultos</strong> de abajo.</p>
     <div class="radios">
       <span>¿Es socio/a del club?</span>
       <label><input type="radio" name="socio" value="1"> Sí (3 €/actividad)</label>
@@ -69,7 +71,7 @@ $err
   </fieldset>
 
   <fieldset>
-    <legend>Actividades — adulto</legend>
+    <legend>Actividades — adultos (y jóvenes de 15+ que juegan en adultos)</legend>
     <div class="checks">$adultosH</div>
   </fieldset>
   <fieldset>
@@ -108,7 +110,7 @@ function signup_individual_post(): void {
         'email'         => mb_strtolower(trim((string)($_POST['email'] ?? ''))),
         'telefono'      => trim((string)($_POST['telefono'] ?? '')),
         'participante'  => trim((string)($_POST['participante'] ?? '')),
-        'ambito'        => ($_POST['ambito'] ?? 'adulto') === 'infantil' ? 'infantil' : 'adulto',
+        'es_menor'      => ($_POST['es_menor'] ?? '0') === '1',
         'edad'          => trim((string)($_POST['edad'] ?? '')),
         'socio'         => ($_POST['socio'] ?? '0') === '1',
         'num_socio'     => trim((string)($_POST['num_socio'] ?? '')),
@@ -122,12 +124,7 @@ function signup_individual_post(): void {
     if ($in['participante'] === '') $errors[] = 'Falta el nombre del participante.';
     if (empty($_POST['rgpd'])) $errors[] = 'Debes aceptar la política de privacidad para continuar.';
 
-    if ($in['ambito'] === 'infantil') {
-        $edad = (int)$in['edad'];
-        if ($edad < 1 || $edad > 17) $errors[] = 'Indica la edad del menor (1–17).';
-    }
-
-    // Cargar disciplinas elegidas y validar ámbito + combinación
+    // Cargar disciplinas elegidas y validar categoría + combinación
     $ids = array_map('intval', $in['disciplinas']);
     $discs = [];
     if ($ids) {
@@ -137,11 +134,15 @@ function signup_individual_post(): void {
         $discs = $st->fetchAll();
     }
     if (!$discs) $errors[] = 'Selecciona al menos una actividad.';
-    foreach ($discs as $d) {
-        if ($d['ambito'] !== $in['ambito']) {
-            $errors[] = 'Has mezclado actividades de adulto e infantil; elige las de la modalidad correcta.';
-            break;
-        }
+    // La categoría (adulto/infantil) se DERIVA de las actividades; deben ser todas de una sola.
+    $ambitos = array_unique(array_column($discs, 'ambito'));
+    if (count($ambitos) > 1) $errors[] = 'Elige actividades de una sola categoría (adultos o infantil), no mezcladas.';
+    $ambito = $ambitos ? reset($ambitos) : 'adulto';
+    // Edad: obligatoria en infantil y también si se marca "es menor" (jóvenes 15-17 que juegan en adultos).
+    $edad = null;
+    if ($ambito === 'infantil' || $in['es_menor']) {
+        $edad = (int)$in['edad'];
+        if ($edad < 1 || $edad > 17) $errors[] = 'Indica la edad del menor (1–17).';
     }
     $tipos = array_column($discs, 'tipo');
     if ($discs && ($msg = validar_combinacion($tipos))) $errors[] = $msg;
@@ -167,8 +168,7 @@ function signup_individual_post(): void {
     $pdo->beginTransaction();
     try {
         $cuentaId = find_or_create_cuenta($in['email'], $in['nombre_adulto'], $in['telefono']);
-        $edad = $in['ambito'] === 'infantil' ? (int)$in['edad'] : null;
-        $partId = find_or_create_participante($cuentaId, $in['participante'], $in['socio'], $in['num_socio'] ?: null, $edad, $in['ambito']);
+        $partId = find_or_create_participante($cuentaId, $in['participante'], $in['socio'], $in['num_socio'] ?: null, $edad, $ambito);
 
         // Regla 2+1 contra lo YA inscrito (evita saltarse el máximo con varios envíos).
         $ex = $pdo->prepare("SELECT d.id, d.tipo FROM inscripcion i JOIN disciplina d ON d.id=i.disciplina_id
