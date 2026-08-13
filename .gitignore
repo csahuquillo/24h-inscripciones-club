@@ -1,0 +1,25 @@
+# Configuración y secretos — NUNCA subir
+.env
+.env.*
+!.env.example
+env
+*.secret
+
+# Datos personales / padrón — NUNCA subir
+migrations/socios.sql
+*.pii
+
+# Imágenes/branding del club (cada club pone las suyas)
+public/assets/logo.*
+public/assets/membrete.*
+public/assets/lona_*.jpg
+public/assets/sponsors/
+
+# Dependencias / build
+vendor/
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

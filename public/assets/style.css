@@ -1,0 +1,114 @@
+:root{
+  --amber:#b45309; --amber2:#d97706; --slate:#1e293b; --slate2:#334155;
+  --bg:#f8fafc; --card:#fff; --border:#e2e8f0; --ok:#15803d; --warn:#b45309; --err:#b91c1c;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--slate);line-height:1.5}
+a{color:var(--amber)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
+  background:var(--slate);color:#fff;padding:.8rem 1.2rem}
+.topbar a{color:#fff;text-decoration:none}
+.brand a{font-weight:700}
+.mainnav{display:flex;gap:1rem;align-items:center}
+.wrap{max-width:860px;margin:1.5rem auto;padding:0 1rem}
+.foot{max-width:860px;margin:2rem auto;padding:1rem;color:#64748b;font-size:.85rem;border-top:1px solid var(--border)}
+h1{color:var(--slate)}
+h2{color:var(--slate2);margin-top:0}
+.muted{color:#64748b}
+.note{color:#64748b;font-size:.9rem}
+.hero .cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+@media(max-width:640px){.hero .cards{grid-template-columns:1fr}}
+.card{display:block;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;
+  text-decoration:none;color:var(--slate);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card:hover{border-color:var(--amber)}
+.card .cta{color:var(--amber);font-weight:600}
+.form{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1rem 0}
+.form.narrow{max-width:380px}
+fieldset{border:1px solid var(--border);border-radius:10px;margin:0 0 1rem;padding:1rem}
+legend{font-weight:600;color:var(--amber);padding:0 .4rem}
+label{display:block;margin:.5rem 0}
+input,select,textarea{width:100%;padding:.55rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:#fff}
+.radios label,.chk{display:flex;align-items:flex-start;gap:.5rem}
+.radios{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin:.5rem 0}
+.radios label,.chk input,.checks input{width:auto}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:.3rem}
+@media(max-width:640px){.checks{grid-template-columns:1fr}}
+.chk{margin:.3rem 0}
+.tag{font-size:.72rem;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;padding:.05rem .35rem;color:#475569}
+.tag.seed{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+button.primary{background:var(--amber);color:#fff;border:0;border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer}
+button.primary:hover{background:var(--amber2)}
+button.primary.sm{padding:.35rem .7rem;font-size:.85rem}
+.linkbtn{background:none;border:0;color:var(--amber);cursor:pointer;font:inherit;text-decoration:underline;padding:0}
+.inline{display:inline}.inline-form{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;border:0;background:none;padding:.4rem 0}
+.inline-form input,.inline-form select{width:auto}
+.grid{width:100%;border-collapse:collapse;margin:.5rem 0;font-size:.94rem}
+.grid th,.grid td{text-align:left;padding:.5rem;border-bottom:1px solid var(--border);vertical-align:top}
+.grid th{color:#475569;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1rem 0}
+.badge{font-size:.78rem;padding:.15rem .5rem;border-radius:999px;font-weight:600}
+.badge.ok{background:#dcfce7;color:var(--ok)}
+.badge.warn{background:#fef3c7;color:var(--warn)}
+.badge.muted{background:#f1f5f9;color:#64748b}
+.flash{background:#ecfccb;border:1px solid #bef264;color:#3f6212;padding:.7rem 1rem;border-radius:8px;margin:1rem 0}
+.errors{background:#fef2f2;border:1px solid #fecaca;color:var(--err);padding:.7rem 1rem;border-radius:8px;margin:1rem 0}
+.errors ul{margin:.3rem 0;padding-left:1.2rem}
+.miembros input,.miembros select{width:100%}
+.miembros .edad{width:5rem}
+.success{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+table.miembros{width:100%;border-collapse:collapse}
+table.miembros th,table.miembros td{padding:.3rem;border-bottom:1px solid var(--border)}
+
+/* --- Humanización: logo, evento, patrocinadores --- */
+.brand{display:flex;align-items:center;gap:.6rem}
+.logo{height:38px;width:auto;display:block;background:#fff;border-radius:6px;padding:2px}
+.wordmark{font-weight:700;font-size:1.05rem;color:#fff;letter-spacing:.01em}
+.event{background:var(--amber);color:#fff;font-weight:700;font-size:.8rem;padding:.15rem .5rem;border-radius:999px}
+.kicker{color:var(--amber);font-weight:600;margin-bottom:.2rem}
+.card .ico{font-size:2rem;line-height:1;margin-bottom:.3rem}
+.sponsors{max-width:860px;margin:2rem auto 0;padding:1rem;text-align:center}
+.sponsors>span{display:block;color:#64748b;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem}
+.sponsor-strip{display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:center;align-items:center}
+.sponsor{max-height:52px;width:auto;filter:grayscale(1);opacity:.85;transition:all .2s}
+.sponsor:hover{filter:none;opacity:1}
+
+/* --- Membrete, banner de plazo, anular --- */
+.membrete{display:block;width:100%;max-width:720px;height:auto;margin:.5rem auto 1rem}
+.banner{padding:.7rem 1rem;border-radius:8px;margin:1rem 0;font-size:.95rem}
+.banner.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.banner.abierto{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+.banner.cerrado{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.linkbtn.danger{color:#b91c1c}
+
+/* --- Red de seguridad de imágenes + aviso de pago --- */
+img{max-width:100%;height:auto}
+.logo{height:38px;width:auto;flex:0 0 auto}
+.pago{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:.6rem .8rem;border-radius:8px;font-size:.95rem}
+
+/* --- Aviso fuerte, KPIs del panel, pasos --- */
+.aviso{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:.6rem .8rem;border-radius:8px;font-weight:600;margin:.6rem 0}
+.stats .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:.4rem 0 1rem}
+@media(max-width:640px){.stats .kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.kpi.ok{background:#ecfdf5;border-color:#a7f3d0}
+.kpi.warn{background:#fffbeb;border-color:#fde68a}
+.kn{display:block;font-size:1.3rem;font-weight:700;color:var(--slate)}
+.kl{display:block;font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-top:.2rem}
+.como{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1.2rem 0}
+.steps{margin:.5rem 0 0;padding-left:1.2rem}
+.steps li{margin:.4rem 0}
+
+/* --- Patrocinadores (lona) --- */
+.patro{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1.2rem 0}
+.lona-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border)}
+.lona{display:block;height:auto;width:100%;min-width:760px;max-width:1000px}
+
+/* --- Lona apilada en vertical + rifa --- */
+.lona-rows{display:flex;flex-direction:column;gap:6px}
+.lona-row{display:block;width:100%;height:auto;border-radius:4px}
+.rifa{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:1.2rem;margin:1.2rem 0}
+.rifa h2{margin-top:0}
+
+/* --- Tags socio (movidos de inline a clase por CSP) --- */
+.tag.ok{background:#dcfce7;border-color:#86efac;color:#166534}
+.tag.err{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
