@@ -151,6 +151,25 @@ Coloca en `public/assets/` (no versionado): `logo.png`/`.jpg`/`.svg`, `membrete.
 `lona_1..3.jpg` (patrocinadores). La app los detecta solos; si no están, usa el nombre del club
 como texto. Los colores/estilos están en `public/assets/style.css`.
 
+## Uso del panel de gestión (staff)
+
+Con una cuenta `staff` o `admin` (login en `/login`), el **Panel de gestión** (`/admin`) permite:
+
+- **Dar de alta presencial** (`/admin/nueva`): crea una inscripción para quien se apunta en
+  persona sin haberse preinscrito online (contacto, participante, actividades, pareja), con
+  opción de **cobrar en el acto** (marca pagado y envía el acceso). Misma validación que el alta online.
+- **Marcar pagado**: registra el cobro (TPV/efectivo) de una inscripción o equipo y envía a la
+  persona su email de acceso. Muestra un indicador de socio (cruce con el padrón) para el precio.
+- **Editar** (`/admin/editar`): corrige sin anular — nombre, actividad, email, socio (recalcula
+  el precio), nivel y pareja/compañero.
+- **Anular**: quita una inscripción o equipo (errores, duplicados, bajas).
+- **Cabezas de serie**: marca semillas en tenis/pádel para el sorteo.
+- **Notificaciones**: email a todos / pagados / impagados (recordatorio) / por actividad, en cola.
+- **Resumen económico**: previsto (según preinscripciones) vs cobrado real, con desglose y % conversión.
+- **Gestión de staff** (solo `admin`): alta de cuentas `staff`/`admin`.
+
+Crea el primer administrador con `bin/create_admin.php` (ver Instalación).
+
 ## Seguridad
 
 Ver el código de `src/security.php` y `src/auth.php`. Resumen: contraseñas **argon2id**, PDO
