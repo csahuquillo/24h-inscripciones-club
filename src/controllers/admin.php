@@ -74,6 +74,10 @@ function admin_post(array $u): void {
                 edit_ins_guardar($u);
                 break;
 
+            case 'new_ins':
+                admin_new_guardar($u);  // renderiza (error) o redirige (ok); no vuelve aquí
+                break;
+
             case 'notify':
                 $asunto = trim((string)($_POST['asunto'] ?? ''));
                 $cuerpo = trim((string)($_POST['cuerpo'] ?? ''));
@@ -277,6 +281,7 @@ HTML;
 
     $c = <<<HTML
 <h1>Panel de gestión</h1>
+<p><a class="primary" href="/admin/nueva">➕ Dar de alta un jugador (presencial)</a></p>
 $resumen
 <section class="panel"><h2>Pagos pendientes · inscripciones</h2>$insTable</section>
 <section class="panel"><h2>Pagos pendientes · equipos de fútbol</h2>$eqTable</section>
@@ -445,4 +450,137 @@ function edit_ins_guardar(array $u): void {
             : (str_contains($m, 'uq_part_disc') ? 'Esa persona ya está inscrita en esa actividad.'
             : 'No se pudo guardar el cambio.'));
     }
+}
+
+/** Alta presencial: formulario para que el staff dé de alta a un jugador que no se preinscribió. */
+function ctrl_admin_new(): void {
+    require_staff();
+    admin_new_form([]);
+}
+
+function admin_new_form(array $errors, array $in = []): void {
+    $u = current_user();
+    $csrf = csrf_field();
+    $err = $errors ? '<div class="errors"><ul><li>' . implode('</li><li>', array_map('e', $errors)) . '</li></ul></div>' : '';
+    $checks = function (string $ambito) use ($in): string {
+        $sel = array_map('strval', (array)($in['disciplinas'] ?? []));
+        $out = '';
+        foreach (disciplinas($ambito) as $d) {
+            $id = (int)$d['id']; $ck = in_array((string)$id, $sel, true) ? ' checked' : '';
+            $out .= '<label class="chk"><input type="checkbox" name="disciplinas[]" value="' . $id . '"' . $ck . '> '
+                  . e($d['nombre']) . ' <span class="tag">' . e($d['tipo']) . '</span></label>';
+        }
+        return $out;
+    };
+    $nom = e($in['nombre_adulto'] ?? ''); $ema = e($in['email'] ?? ''); $tel = e($in['telefono'] ?? '');
+    $pnom = e($in['participante'] ?? ''); $nsoc = e($in['num_socio'] ?? ''); $comp = e($in['companero'] ?? '');
+    $adH = $checks('adulto'); $inH = $checks('infantil');
+    $c = <<<HTML
+<h1>Dar de alta un jugador (presencial)</h1>
+<p class="muted">Para apuntar a alguien que viene físicamente y no se preinscribió online. Se crea igual que una
+preinscripción; si ha pagado en el acto, marca "Cobrar ahora".</p>
+$err
+<form method="post" action="/admin" class="form">
+  $csrf
+  <input type="hidden" name="do" value="new_ins">
+  <fieldset><legend>Persona de contacto (adulto)</legend>
+    <label>Nombre y apellidos <input name="nombre_adulto" value="$nom" required maxlength="120"></label>
+    <label>Email <input type="email" name="email" value="$ema" required maxlength="190"></label>
+    <label>Teléfono <input name="telefono" value="$tel" required maxlength="30"></label>
+  </fieldset>
+  <fieldset><legend>Participante</legend>
+    <label>Nombre y apellidos del participante <input name="participante" value="$pnom" required maxlength="120"></label>
+    <div class="radios"><span>¿Es menor de edad?</span>
+      <label><input type="radio" name="es_menor" value="0" checked> No</label>
+      <label><input type="radio" name="es_menor" value="1"> Sí (menor de 18)</label></div>
+    <label>Edad (si es menor) <input type="number" name="edad" min="1" max="17"></label>
+    <div class="radios"><span>¿Socio?</span>
+      <label><input type="radio" name="socio" value="1"> Sí (3 €)</label>
+      <label><input type="radio" name="socio" value="0" checked> No (5 €)</label></div>
+    <label>Nº de socio (si es socio) <input name="num_socio" value="$nsoc" maxlength="10"></label>
+  </fieldset>
+  <fieldset><legend>Actividades — adultos (y jóvenes 15+)</legend><div class="checks">$adH</div></fieldset>
+  <fieldset><legend>Actividades — infantil</legend><div class="checks">$inH</div></fieldset>
+  <fieldset><legend>Extras</legend>
+    <label>Nivel de pádel (1–4, si aplica) <input type="number" name="nivel_padel" min="1" max="4"></label>
+    <label>Pareja / compañero (opcional) <input name="companero" value="$comp" maxlength="120"></label>
+  </fieldset>
+  <fieldset><legend>Cobro</legend>
+    <label class="chk"><input type="checkbox" name="cobrar" value="1"> Cobrar ahora (ha pagado en el acto)</label>
+    <label>Método <select name="metodo"><option value="tpv">TPV</option><option value="efectivo">Efectivo</option></select></label>
+  </fieldset>
+  <button class="primary" type="submit">Dar de alta</button>
+  &nbsp; <a href="/admin" class="linkbtn">Cancelar</a>
+</form>
+HTML;
+    render('Alta presencial', $c, $u, 'noindex, nofollow');
+}
+
+function admin_new_guardar(array $u): void {
+    $pdo = db();
+    $in = [
+        'nombre_adulto' => trim((string)($_POST['nombre_adulto'] ?? '')),
+        'email'         => mb_strtolower(trim((string)($_POST['email'] ?? ''))),
+        'telefono'      => trim((string)($_POST['telefono'] ?? '')),
+        'participante'  => trim((string)($_POST['participante'] ?? '')),
+        'es_menor'      => ($_POST['es_menor'] ?? '0') === '1',
+        'edad'          => trim((string)($_POST['edad'] ?? '')),
+        'socio'         => ($_POST['socio'] ?? '0') === '1',
+        'num_socio'     => trim((string)($_POST['num_socio'] ?? '')),
+        'nivel_padel'   => trim((string)($_POST['nivel_padel'] ?? '')),
+        'companero'     => trim((string)($_POST['companero'] ?? '')),
+        'disciplinas'   => array_values(array_filter((array)($_POST['disciplinas'] ?? []), 'is_numeric')),
+    ];
+    $errors = [];
+    if ($in['nombre_adulto'] === '') $errors[] = 'Falta el nombre de contacto.';
+    if (!filter_var($in['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'El email no es válido.';
+    if ($in['telefono'] === '' || !preg_match('/^[0-9 +()\-]{6,30}$/', $in['telefono'])) $errors[] = 'El teléfono no es válido.';
+    if ($in['participante'] === '') $errors[] = 'Falta el nombre del participante.';
+    $ids = array_map('intval', $in['disciplinas']); $discs = [];
+    if ($ids) { $ph = implode(',', array_fill(0, count($ids), '?')); $st = $pdo->prepare("SELECT * FROM disciplina WHERE id IN ($ph) AND activa=1"); $st->execute($ids); $discs = $st->fetchAll(); }
+    if (!$discs) $errors[] = 'Selecciona al menos una actividad.';
+    $ambitos = array_unique(array_column($discs, 'ambito'));
+    if (count($ambitos) > 1) $errors[] = 'Elige actividades de una sola categoría (adultos o infantil).';
+    $ambito = $ambitos ? reset($ambitos) : 'adulto';
+    $edad = null;
+    if ($ambito === 'infantil' || $in['es_menor']) { $edad = (int)$in['edad']; if ($edad < 1 || $edad > 17) $errors[] = 'Indica la edad del menor (1–17).'; }
+    $tipos = array_column($discs, 'tipo');
+    if ($discs && ($msg = validar_combinacion($tipos))) $errors[] = $msg;
+    $nombres = array_column($discs, 'nombre');
+    if (in_array('Pádel', $nombres, true) && in_array('Pádel+4', $nombres, true)) $errors[] = 'No puedes elegir Pádel y Pádel+4 a la vez.';
+    $pidePadel = (bool)array_filter($discs, fn($d) => (int)$d['pide_nivel'] === 1);
+    $nivel = null;
+    if ($pidePadel) { $nivel = (int)$in['nivel_padel']; if ($nivel < 1 || $nivel > NIVEL_PADEL_MAX) $errors[] = 'En pádel indica un nivel entre 1 y ' . NIVEL_PADEL_MAX . '.'; }
+    if ($errors) { admin_new_form($errors, $in); return; }
+
+    $pdo->beginTransaction();
+    try {
+        $cuentaId = find_or_create_cuenta($in['email'], $in['nombre_adulto'], $in['telefono']);
+        $partId = find_or_create_participante($cuentaId, $in['participante'], $in['socio'], $in['num_socio'] ?: null, $edad, $ambito);
+        $ex = $pdo->prepare("SELECT d.id, d.tipo FROM inscripcion i JOIN disciplina d ON d.id=i.disciplina_id WHERE i.participante_id=? AND i.estado<>'anulada'");
+        $ex->execute([$partId]); $union = $ex->fetchAll(); $existIds = array_map('intval', array_column($union, 'id'));
+        foreach ($discs as $d) { if (!in_array((int)$d['id'], $existIds, true)) $union[] = ['id' => $d['id'], 'tipo' => $d['tipo']]; }
+        if ($msg = validar_combinacion(array_column($union, 'tipo'))) { $pdo->rollBack(); admin_new_form(['Sumando lo que ya tiene inscrito se supera el máximo. ' . $msg], $in); return; }
+        $precio = price_for($in['socio']); $companero = $in['companero'] !== '' ? $in['companero'] : null;
+        $insSt = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id,disciplina_id,nivel_padel,precio_eur,companero) VALUES(?,?,?,?,?)');
+        foreach ($discs as $d) { $insSt->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companero]); }
+        $pagado = false;
+        if (($_POST['cobrar'] ?? '') === '1') {
+            $metodo = ($_POST['metodo'] ?? 'tpv') === 'efectivo' ? 'efectivo' : 'tpv';
+            foreach ($pdo->query('SELECT id,precio_eur FROM inscripcion WHERE participante_id=' . (int)$partId . ' AND estado="preinscrita"')->fetchAll() as $n) {
+                $pdo->prepare('UPDATE inscripcion SET estado="pagada" WHERE id=?')->execute([$n['id']]);
+                $pdo->prepare('INSERT INTO pago(objeto_tipo,objeto_id,importe_eur,metodo,cobrado_por) VALUES("inscripcion",?,?,?,?)')->execute([$n['id'], $n['precio_eur'], $metodo, $u['id']]);
+            }
+            $pagado = true;
+        }
+        $pdo->commit();
+        if ($pagado) activate_or_confirm($cuentaId);
+        audit('admin_new_ins', 'part=' . $partId . ' por=' . $u['id'] . ($pagado ? ' PAGADO' : ''));
+        flash_set($pagado ? 'Jugador dado de alta y cobrado. Se le ha enviado su acceso por email.' : 'Jugador dado de alta (pendiente de pago).');
+    } catch (Throwable $exx) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        audit('admin_new_error', $exx->getMessage());
+        admin_new_form(['No se pudo dar de alta. Revisa los datos e inténtalo de nuevo.'], $in); return;
+    }
+    redirect('/admin');
 }

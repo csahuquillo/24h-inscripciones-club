@@ -34,6 +34,7 @@ $routes = [
     'GET /admin'                     => 'ctrl_admin',
     'POST /admin'                    => 'ctrl_admin',
     'GET /admin/editar'              => 'ctrl_admin_edit',
+    'GET /admin/nueva'               => 'ctrl_admin_new',
 ];
 
 $key = "$method $path";
