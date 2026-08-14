@@ -178,7 +178,7 @@ function admin_dashboard(array $u): void {
     }
 
     // Pagos pendientes: inscripciones
-    $ins = $pdo->query('SELECT i.id, i.precio_eur, i.cabeza_serie, d.nombre AS disc, d.tipo, p.nombre_completo AS part,
+    $ins = $pdo->query('SELECT i.id, i.precio_eur, i.cabeza_serie, i.companero, d.nombre AS disc, d.tipo, p.nombre_completo AS part,
         p.es_socio, p.num_socio, c.nombre_completo AS titular, c.email FROM inscripcion i
         JOIN participante p ON p.id=i.participante_id JOIN cuenta c ON c.id=p.cuenta_id
         JOIN disciplina d ON d.id=i.disciplina_id WHERE i.estado="preinscrita" ORDER BY c.email, d.nombre')->fetchAll();
@@ -204,7 +204,8 @@ function admin_dashboard(array $u): void {
                 . '<button class="linkbtn">' . $lbl . '</button></form>';
         }
         $insRows .= '<tr><td>' . e($r['part']) . ' ' . $socioTag . '<br><span class="muted">' . e($r['titular']) . ' · ' . e($r['email']) . '</span></td>'
-            . '<td>' . e($r['disc']) . ((int)$r['cabeza_serie'] === 1 ? ' <span class="tag seed">CS</span>' : '') . '</td>'
+            . '<td>' . e($r['disc']) . ((int)$r['cabeza_serie'] === 1 ? ' <span class="tag seed">CS</span>' : '')
+            . ($r['companero'] ? '<br><span class="muted">con ' . e($r['companero']) . '</span>' : '') . '</td>'
             . '<td>' . number_format((float)$r['precio_eur'], 2, ',', '.') . ' €</td>'
             . '<td><form method="post" class="inline">' . $csrf . '<input type="hidden" name="do" value="pay_ins">'
             . '<input type="hidden" name="id" value="' . (int)$r['id'] . '">'
@@ -371,7 +372,7 @@ function ctrl_admin_edit(): void {
         $opts .= '<option value="' . (int)$d['id'] . '"' . $sel . '>' . e($d['nombre']) . ' (' . e($d['tipo']) . ')</option>';
     }
     $nombre = e($r['nombre_completo']); $email = e($r['email']); $numSocio = e((string)$r['num_socio']);
-    $nivel = e((string)($r['nivel_padel'] ?? ''));
+    $nivel = e((string)($r['nivel_padel'] ?? '')); $comp = e((string)($r['companero'] ?? ''));
     $siSel = (int)$r['es_socio'] === 1 ? ' checked' : '';
     $noSel = (int)$r['es_socio'] === 1 ? '' : ' checked';
     $ambito = e($r['ambito']);
@@ -391,6 +392,7 @@ function ctrl_admin_edit(): void {
   </div>
   <label>Nº de socio <input name="num_socio" value="$numSocio" maxlength="10"></label>
   <label>Nivel de pádel (si aplica, 1–4) <input type="number" name="nivel_padel" value="$nivel" min="1" max="4"></label>
+  <label>Pareja / compañero (opcional) <input name="companero" value="$comp" maxlength="120"></label>
   <button class="primary" type="submit">Guardar cambios</button>
   &nbsp; <a href="/admin" class="linkbtn">Cancelar</a>
 </form>
@@ -415,6 +417,7 @@ function edit_ins_guardar(array $u): void {
     $numSocio = trim((string)($_POST['num_socio'] ?? '')) ?: null;
     $nivelRaw = trim((string)($_POST['nivel_padel'] ?? ''));
     $nivel  = $nivelRaw === '' ? null : (int)$nivelRaw;
+    $companero = trim((string)($_POST['companero'] ?? '')) ?: null;
 
     if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) { flash_set('Nombre o email no válidos.'); return; }
     $sd = $pdo->prepare('SELECT id, pide_nivel FROM disciplina WHERE id=? AND ambito=? AND activa=1');
@@ -428,7 +431,7 @@ function edit_ins_guardar(array $u): void {
         $pdo->beginTransaction();
         $pdo->prepare('UPDATE participante SET nombre_completo=?, es_socio=?, num_socio=? WHERE id=?')
             ->execute([$nombre, $socio ? 1 : 0, $numSocio, $r['participante_id']]);
-        $pdo->prepare('UPDATE inscripcion SET disciplina_id=?, nivel_padel=? WHERE id=?')->execute([$disc, $nivel, $id]);
+        $pdo->prepare('UPDATE inscripcion SET disciplina_id=?, nivel_padel=?, companero=? WHERE id=?')->execute([$disc, $nivel, $companero, $id]);
         $pdo->prepare('UPDATE inscripcion SET precio_eur=? WHERE participante_id=? AND estado<>"anulada"')
             ->execute([price_for($socio), $r['participante_id']]);
         $pdo->prepare('UPDATE cuenta SET email=? WHERE id=?')->execute([$email, $r['cuenta_id']]);

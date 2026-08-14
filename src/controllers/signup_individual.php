@@ -26,7 +26,7 @@ function signup_individual_form(array $errors, array $in = []): void {
     };
     $csrf = csrf_field();
     $nom = e($in['nombre_adulto'] ?? ''); $ema = e($in['email'] ?? ''); $tel = e($in['telefono'] ?? '');
-    $pnom = e($in['participante'] ?? ''); $nsoc = e($in['num_socio'] ?? '');
+    $pnom = e($in['participante'] ?? ''); $nsoc = e($in['num_socio'] ?? ''); $comp = e($in['companero'] ?? '');
     $adultosH = $checks($adultos); $infantilH = $checks($infantil);
     $banner = preins_banner();
     $aviso = AVISO_NO_PAGO;
@@ -83,6 +83,13 @@ $err
     <label>Nivel de pádel (4 o inferior) <input type="number" name="nivel_padel" min="1" max="4"></label>
   </fieldset>
 
+  <fieldset>
+    <legend>Pareja / compañero (opcional)</legend>
+    <label>¿Con quién juegas? (nombre de tu pareja o compañero) <input name="companero" value="$comp" maxlength="120"></label>
+    <p class="note">Solo si juegas en pareja o dobles (pádel, tenis dobles, parchís…). Nos ayuda a emparejaros;
+    <strong>cada persona se sigue apuntando por separado</strong> (recuerda apuntar también a tu pareja).</p>
+  </fieldset>
+
   <fieldset class="consent">
     <label class="chk"><input type="checkbox" name="rgpd" value="1" required>
       He leído y acepto la <a href="/privacidad" target="_blank">política de privacidad</a> y
@@ -115,6 +122,7 @@ function signup_individual_post(): void {
         'socio'         => ($_POST['socio'] ?? '0') === '1',
         'num_socio'     => trim((string)($_POST['num_socio'] ?? '')),
         'nivel_padel'   => trim((string)($_POST['nivel_padel'] ?? '')),
+        'companero'     => trim((string)($_POST['companero'] ?? '')),
         'disciplinas'   => array_values(array_filter((array)($_POST['disciplinas'] ?? []), 'is_numeric')),
     ];
     $errors = [];
@@ -186,9 +194,10 @@ function signup_individual_post(): void {
         }
 
         $precio = price_for($in['socio']);
-        $ins = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id, disciplina_id, nivel_padel, precio_eur) VALUES(?,?,?,?)');
+        $companero = $in['companero'] !== '' ? $in['companero'] : null;
+        $ins = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id, disciplina_id, nivel_padel, precio_eur, companero) VALUES(?,?,?,?,?)');
         foreach ($discs as $d) {
-            $ins->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio]);
+            $ins->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companero]);
         }
         $pdo->commit();
     } catch (Throwable $ex) {

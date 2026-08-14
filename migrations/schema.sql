@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS inscripcion (
   participante_id INT NOT NULL,
   disciplina_id   INT NOT NULL,
   nivel_padel     TINYINT UNSIGNED NULL,
+  companero       VARCHAR(120) NULL,               -- pareja/compañero declarado (dobles, parchís…)
   cabeza_serie    TINYINT(1) NOT NULL DEFAULT 0,   -- seed en tenis/pádel (no se cruzan pronto)
   estado          ENUM('preinscrita','pagada','anulada') NOT NULL DEFAULT 'preinscrita',
   precio_eur      DECIMAL(5,2) NOT NULL,
