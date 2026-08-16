@@ -30,6 +30,7 @@ function signup_individual_form(array $errors, array $in = []): void {
     $pnj = e($in['pareja_nombre'] ?? ''); $pnjns = e($in['pareja_num_socio'] ?? '');
     $pjSi = ($in['pareja_socio'] ?? false) ? ' checked' : '';
     $pjNo = ($in['pareja_socio'] ?? false) ? '' : ' checked';
+    $spjChk = ($in['sin_pareja'] ?? false) ? ' checked' : '';
     $adultosH = $checks($adultos); $infantilH = $checks($infantil);
     $banner = preins_banner();
     $aviso = AVISO_NO_PAGO;
@@ -98,6 +99,8 @@ $err
     <p class="note">Si rellenas esto, apuntas a tu pareja <strong>a las mismas actividades que tú</strong> y quedáis
     <strong>emparejados</strong> automáticamente (cada uno con su precio). Úsalo <strong>solo si tu pareja aún no se ha
     apuntado</strong>; si ya lo hizo por su cuenta, déjalo vacío.</p>
+    <label class="check"><input type="checkbox" name="sin_pareja" value="1"$spjChk> <strong>No tengo pareja, buscádmela</strong>
+    (para juegos por parejas). La organización te asignará una desde la bolsa de parejas.</label>
   </fieldset>
 
   <fieldset class="consent">
@@ -135,6 +138,7 @@ function signup_individual_post(): void {
         'pareja_nombre' => trim((string)($_POST['pareja_nombre'] ?? '')),
         'pareja_socio'  => ($_POST['pareja_socio'] ?? '0') === '1',
         'pareja_num_socio' => trim((string)($_POST['pareja_num_socio'] ?? '')),
+        'sin_pareja'    => ($_POST['sin_pareja'] ?? '0') === '1',
         'disciplinas'   => array_values(array_filter((array)($_POST['disciplinas'] ?? []), 'is_numeric')),
     ];
     $errors = [];
@@ -208,9 +212,11 @@ function signup_individual_post(): void {
         $precio = price_for($in['socio']);
         $parejaNombre = $in['pareja_nombre'];
         $companeroMain = $parejaNombre !== '' ? $parejaNombre : null;
-        $ins = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id, disciplina_id, nivel_padel, precio_eur, companero) VALUES(?,?,?,?,?)');
+        // "No tengo pareja, buscádmela": solo si NO ha apuntado a nadie él mismo.
+        $sinPareja = ($parejaNombre === '' && !empty($in['sin_pareja'])) ? 1 : 0;
+        $ins = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id, disciplina_id, nivel_padel, precio_eur, companero, sin_pareja) VALUES(?,?,?,?,?,?)');
         foreach ($discs as $d) {
-            $ins->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companeroMain]);
+            $ins->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companeroMain, $sinPareja]);
         }
         // Si se indica pareja, se crea también su inscripción (mismas actividades) y quedan emparejados.
         if ($parejaNombre !== '') {
@@ -218,7 +224,7 @@ function signup_individual_post(): void {
             $parejaPart = find_or_create_participante($cuentaId, $parejaNombre, $in['pareja_socio'], $in['pareja_num_socio'] ?: null, $parejaEdad, $ambito);
             $precioPareja = price_for($in['pareja_socio']);
             foreach ($discs as $d) {
-                $ins->execute([$parejaPart, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precioPareja, $in['participante']]);
+                $ins->execute([$parejaPart, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precioPareja, $in['participante'], 0]);
             }
         }
         $pdo->commit();
@@ -241,7 +247,8 @@ function signup_individual_post(): void {
         }
         $total += $precioPareja * count($discs);
     }
-    email_preinscripcion($in['email'], $in['nombre_adulto'], $lineas, $total);
+    $notaPareja = $sinPareja ? 'Nos has indicado que no tienes pareja para los juegos por parejas: la organización te asignará una desde la bolsa de parejas. No tienes que hacer nada más.' : '';
+    email_preinscripcion($in['email'], $in['nombre_adulto'], $lineas, $total, $notaPareja);
     signup_success();
 }
 

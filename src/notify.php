@@ -46,32 +46,35 @@ function tpl_payment_confirm(string $nombre): array {
     return [$html, $text];
 }
 
-function tpl_preinscripcion(string $nombre, array $lineas, float $total): array {
+function tpl_preinscripcion(string $nombre, array $lineas, float $total, string $nota = ''): array {
     $base = cfg('BASE_URL');
     $ev   = e(cfg('EVENTO_NOMBRE', '24 Horas'));
     $items = '';
     foreach ($lineas as $l) $items .= '<li>' . e($l) . '</li>';
     $totalTxt = number_format($total, 2, ',', '.');
+    $notaHtml = $nota !== '' ? '<p>' . e($nota) . '</p>' : '';
     $html = tpl_wrap(
         '<p>Hola ' . e($nombre) . ',</p>'
         . '<p>Hemos recibido tu <strong>preinscripción</strong> para ' . $ev . '. Queda <strong>pendiente de pago</strong>:</p>'
         . '<ul>' . $items . '</ul>'
         . '<p><strong>Total a pagar: ' . $totalTxt . ' €</strong></p>'
+        . $notaHtml
         . '<p>' . PAGO_INFO . '</p>'
         . '<p><strong>La preinscripción no da plaza hasta que se abona.</strong> Cuando el club confirme tu pago '
         . 'recibirás por email tu <strong>usuario y contraseña</strong> para entrar en '
         . '<a href="' . e($base) . '/login">' . e($base) . '</a> y ver tus inscripciones, emparejamientos y horarios.</p>');
+    $notaText = $nota !== '' ? $nota . "\n\n" : '';
     $text = "Hola $nombre,\n\nHemos recibido tu preinscripción para " . cfg('EVENTO_NOMBRE', '24 Horas')
         . " (pendiente de pago):\n" . implode("\n", array_map(fn($l) => " - $l", $lineas)) . "\n"
-        . "Total a pagar: $totalTxt EUR\n\n" . strip_tags(PAGO_INFO) . "\n\n"
+        . "Total a pagar: $totalTxt EUR\n\n" . $notaText . strip_tags(PAGO_INFO) . "\n\n"
         . "La preinscripcion no da plaza hasta que se abona. Cuando el club confirme el pago recibiras tu "
         . "usuario y contrasena para entrar en $base/login\n\n" . cfg('CLUB_NOMBRE', 'Tu Club Deportivo');
     return [$html, $text];
 }
 
 /** Envía el email de "preinscripción recibida (pendiente de pago)". Best-effort. */
-function email_preinscripcion(string $toEmail, string $nombre, array $lineas, float $total): void {
-    [$h, $t] = tpl_preinscripcion($nombre, $lineas, $total);
+function email_preinscripcion(string $toEmail, string $nombre, array $lineas, float $total, string $nota = ''): void {
+    [$h, $t] = tpl_preinscripcion($nombre, $lineas, $total, $nota);
     try {
         ses_send($toEmail, 'Preinscripción recibida (pendiente de pago) · ' . cfg('EVENTO_NOMBRE', '24 Horas'), $h, $t);
         audit('preins_email', $toEmail);

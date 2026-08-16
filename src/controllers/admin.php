@@ -182,7 +182,7 @@ function admin_dashboard(array $u): void {
     }
 
     // Pagos pendientes: inscripciones
-    $ins = $pdo->query('SELECT i.id, i.precio_eur, i.cabeza_serie, i.companero, d.nombre AS disc, d.tipo, p.nombre_completo AS part,
+    $ins = $pdo->query('SELECT i.id, i.precio_eur, i.cabeza_serie, i.companero, i.sin_pareja, d.nombre AS disc, d.tipo, p.nombre_completo AS part,
         p.es_socio, p.num_socio, c.nombre_completo AS titular, c.email FROM inscripcion i
         JOIN participante p ON p.id=i.participante_id JOIN cuenta c ON c.id=p.cuenta_id
         JOIN disciplina d ON d.id=i.disciplina_id WHERE i.estado="preinscrita" ORDER BY c.email, d.nombre')->fetchAll();
@@ -209,6 +209,7 @@ function admin_dashboard(array $u): void {
         }
         $insRows .= '<tr><td>' . e($r['part']) . ' ' . $socioTag . '<br><span class="muted">' . e($r['titular']) . ' · ' . e($r['email']) . '</span></td>'
             . '<td>' . e($r['disc']) . ((int)$r['cabeza_serie'] === 1 ? ' <span class="tag seed">CS</span>' : '')
+            . ((int)$r['sin_pareja'] === 1 ? ' <span class="tag buscar">busca pareja</span>' : '')
             . ($r['companero'] ? '<br><span class="muted">con ' . e($r['companero']) . '</span>' : '') . '</td>'
             . '<td>' . number_format((float)$r['precio_eur'], 2, ',', '.') . ' €</td>'
             . '<td><form method="post" class="inline">' . $csrf . '<input type="hidden" name="do" value="pay_ins">'
@@ -240,6 +241,34 @@ function admin_dashboard(array $u): void {
     $eqTable = $eqRows
         ? '<table class="grid"><thead><tr><th>Equipo</th><th>Total</th><th>Acción</th></tr></thead><tbody>' . $eqRows . '</tbody></table>'
         : '<p class="muted">No hay equipos pendientes.</p>';
+
+    // Bolsa de parejas: quién ha pedido que le asignen pareja (sin_pareja=1), agrupado por actividad
+    $bolsa = [];
+    foreach ($ins as $r) {
+        if ((int)$r['sin_pareja'] !== 1) continue;
+        $bolsa[$r['disc']][] = $r;
+    }
+    $bolsaHtml = '';
+    if ($bolsa) {
+        ksort($bolsa);
+        foreach ($bolsa as $disc => $lista) {
+            $items = '';
+            foreach ($lista as $r) {
+                $socioTxt = (int)$r['es_socio'] === 1 ? 'socio' : 'no socio';
+                $items .= '<li>' . e($r['part']) . ' <span class="muted">(' . $socioTxt . ' · '
+                    . e($r['email']) . ')</span> '
+                    . '<a class="linkbtn" href="/admin/editar?ins=' . (int)$r['id'] . '">emparejar</a></li>';
+            }
+            $par = count($lista) % 2 === 0 ? '' : ' <span class="tag err">impar</span>';
+            $bolsaHtml .= '<div class="bolsa-disc"><strong>' . e($disc) . '</strong> · '
+                . count($lista) . ' sin pareja' . $par . '<ul>' . $items . '</ul></div>';
+        }
+        $bolsaHtml = '<p class="muted">Personas que han pedido que la organización les asigne pareja. '
+            . 'Empareja a dos de la misma actividad editando a uno (campo «pareja/compañero») y desmarcando «busca pareja».</p>'
+            . $bolsaHtml;
+    } else {
+        $bolsaHtml = '<p class="muted">Nadie pendiente de asignar pareja.</p>';
+    }
 
     // Notificaciones — opciones de destino
     $opts = '<option value="impagados">Preinscritos SIN pagar (recordatorio)</option>'
@@ -284,6 +313,7 @@ HTML;
 <p><a class="primary" href="/admin/nueva">➕ Dar de alta un jugador (presencial)</a></p>
 $resumen
 <section class="panel"><h2>Pagos pendientes · inscripciones</h2>$insTable</section>
+<section class="panel"><h2>Bolsa de parejas</h2>$bolsaHtml</section>
 <section class="panel"><h2>Pagos pendientes · equipos de fútbol</h2>$eqTable</section>
 
 <section class="panel"><h2>Enviar notificación</h2>
@@ -378,6 +408,7 @@ function ctrl_admin_edit(): void {
     }
     $nombre = e($r['nombre_completo']); $email = e($r['email']); $numSocio = e((string)$r['num_socio']);
     $nivel = e((string)($r['nivel_padel'] ?? '')); $comp = e((string)($r['companero'] ?? ''));
+    $spjChk = (int)($r['sin_pareja'] ?? 0) === 1 ? ' checked' : '';
     $siSel = (int)$r['es_socio'] === 1 ? ' checked' : '';
     $noSel = (int)$r['es_socio'] === 1 ? '' : ' checked';
     $ambito = e($r['ambito']);
@@ -398,6 +429,7 @@ function ctrl_admin_edit(): void {
   <label>Nº de socio <input name="num_socio" value="$numSocio" maxlength="10"></label>
   <label>Nivel de pádel (si aplica, 1–4) <input type="number" name="nivel_padel" value="$nivel" min="1" max="4"></label>
   <label>Pareja / compañero (opcional) <input name="companero" value="$comp" maxlength="120"></label>
+  <label class="check"><input type="checkbox" name="sin_pareja" value="1"$spjChk> Busca pareja (bolsa de parejas)</label>
   <button class="primary" type="submit">Guardar cambios</button>
   &nbsp; <a href="/admin" class="linkbtn">Cancelar</a>
 </form>
@@ -423,6 +455,7 @@ function edit_ins_guardar(array $u): void {
     $nivelRaw = trim((string)($_POST['nivel_padel'] ?? ''));
     $nivel  = $nivelRaw === '' ? null : (int)$nivelRaw;
     $companero = trim((string)($_POST['companero'] ?? '')) ?: null;
+    $sinPareja = ($_POST['sin_pareja'] ?? '0') === '1' ? 1 : 0;
 
     if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) { flash_set('Nombre o email no válidos.'); return; }
     $sd = $pdo->prepare('SELECT id, pide_nivel FROM disciplina WHERE id=? AND ambito=? AND activa=1');
@@ -436,7 +469,7 @@ function edit_ins_guardar(array $u): void {
         $pdo->beginTransaction();
         $pdo->prepare('UPDATE participante SET nombre_completo=?, es_socio=?, num_socio=? WHERE id=?')
             ->execute([$nombre, $socio ? 1 : 0, $numSocio, $r['participante_id']]);
-        $pdo->prepare('UPDATE inscripcion SET disciplina_id=?, nivel_padel=?, companero=? WHERE id=?')->execute([$disc, $nivel, $companero, $id]);
+        $pdo->prepare('UPDATE inscripcion SET disciplina_id=?, nivel_padel=?, companero=?, sin_pareja=? WHERE id=?')->execute([$disc, $nivel, $companero, $sinPareja, $id]);
         $pdo->prepare('UPDATE inscripcion SET precio_eur=? WHERE participante_id=? AND estado<>"anulada"')
             ->execute([price_for($socio), $r['participante_id']]);
         $pdo->prepare('UPDATE cuenta SET email=? WHERE id=?')->execute([$email, $r['cuenta_id']]);
@@ -474,6 +507,7 @@ function admin_new_form(array $errors, array $in = []): void {
     };
     $nom = e($in['nombre_adulto'] ?? ''); $ema = e($in['email'] ?? ''); $tel = e($in['telefono'] ?? '');
     $pnom = e($in['participante'] ?? ''); $nsoc = e($in['num_socio'] ?? ''); $comp = e($in['companero'] ?? '');
+    $spjChk = ($in['sin_pareja'] ?? false) ? ' checked' : '';
     $adH = $checks('adulto'); $inH = $checks('infantil');
     $c = <<<HTML
 <h1>Dar de alta un jugador (presencial)</h1>
@@ -504,6 +538,7 @@ $err
   <fieldset><legend>Extras</legend>
     <label>Nivel de pádel (1–4, si aplica) <input type="number" name="nivel_padel" min="1" max="4"></label>
     <label>Pareja / compañero (opcional) <input name="companero" value="$comp" maxlength="120"></label>
+    <label class="check"><input type="checkbox" name="sin_pareja" value="1"$spjChk> No tiene pareja, asignarle una (bolsa de parejas)</label>
   </fieldset>
   <fieldset><legend>Cobro</legend>
     <label class="chk"><input type="checkbox" name="cobrar" value="1"> Cobrar ahora (ha pagado en el acto)</label>
@@ -529,6 +564,7 @@ function admin_new_guardar(array $u): void {
         'num_socio'     => trim((string)($_POST['num_socio'] ?? '')),
         'nivel_padel'   => trim((string)($_POST['nivel_padel'] ?? '')),
         'companero'     => trim((string)($_POST['companero'] ?? '')),
+        'sin_pareja'    => ($_POST['sin_pareja'] ?? '0') === '1',
         'disciplinas'   => array_values(array_filter((array)($_POST['disciplinas'] ?? []), 'is_numeric')),
     ];
     $errors = [];
@@ -562,8 +598,9 @@ function admin_new_guardar(array $u): void {
         foreach ($discs as $d) { if (!in_array((int)$d['id'], $existIds, true)) $union[] = ['id' => $d['id'], 'tipo' => $d['tipo']]; }
         if ($msg = validar_combinacion(array_column($union, 'tipo'))) { $pdo->rollBack(); admin_new_form(['Sumando lo que ya tiene inscrito se supera el máximo. ' . $msg], $in); return; }
         $precio = price_for($in['socio']); $companero = $in['companero'] !== '' ? $in['companero'] : null;
-        $insSt = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id,disciplina_id,nivel_padel,precio_eur,companero) VALUES(?,?,?,?,?)');
-        foreach ($discs as $d) { $insSt->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companero]); }
+        $sinPareja = ($companero === null && !empty($in['sin_pareja'])) ? 1 : 0;
+        $insSt = $pdo->prepare('INSERT IGNORE INTO inscripcion(participante_id,disciplina_id,nivel_padel,precio_eur,companero,sin_pareja) VALUES(?,?,?,?,?,?)');
+        foreach ($discs as $d) { $insSt->execute([$partId, (int)$d['id'], (int)$d['pide_nivel'] === 1 ? $nivel : null, $precio, $companero, $sinPareja]); }
         $pagado = false;
         if (($_POST['cobrar'] ?? '') === '1') {
             $metodo = ($_POST['metodo'] ?? 'tpv') === 'efectivo' ? 'efectivo' : 'tpv';
