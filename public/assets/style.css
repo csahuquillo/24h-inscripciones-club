@@ -41,6 +41,10 @@ input,select,textarea{width:100%;padding:.55rem;border:1px solid #cbd5e1;border-
 .check input{width:auto;margin-top:.15rem}
 .bolsa-disc{margin:.5rem 0;padding:.4rem .6rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px}
 .bolsa-disc ul{margin:.3rem 0 0;padding-left:1.1rem}
+.act-det{border-bottom:1px solid var(--border)}
+.act-det summary{cursor:pointer;padding:.5rem .2rem;list-style-position:inside}
+.act-det summary:hover{background:#f8fafc}
+.act-det ul{margin:.2rem 0 .6rem;padding-left:1.4rem;line-height:1.7}
 button.primary{background:var(--amber);color:#fff;border:0;border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer}
 button.primary:hover{background:var(--amber2)}
 button.primary.sm{padding:.35rem .7rem;font-size:.85rem}

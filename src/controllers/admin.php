@@ -185,7 +185,7 @@ function admin_dashboard(array $u): void {
     $ins = $pdo->query('SELECT i.id, i.precio_eur, i.cabeza_serie, i.companero, i.sin_pareja, d.nombre AS disc, d.tipo, p.nombre_completo AS part,
         p.es_socio, p.num_socio, c.nombre_completo AS titular, c.email FROM inscripcion i
         JOIN participante p ON p.id=i.participante_id JOIN cuenta c ON c.id=p.cuenta_id
-        JOIN disciplina d ON d.id=i.disciplina_id WHERE i.estado="preinscrita" ORDER BY c.email, d.nombre')->fetchAll();
+        JOIN disciplina d ON d.id=i.disciplina_id WHERE i.estado="preinscrita" ORDER BY p.nombre_completo, d.nombre')->fetchAll();
     $insRows = '';
     foreach ($ins as $r) {
         // Indicador socio declarado vs padrón
@@ -241,6 +241,35 @@ function admin_dashboard(array $u): void {
     $eqTable = $eqRows
         ? '<table class="grid"><thead><tr><th>Equipo</th><th>Total</th><th>Acción</th></tr></thead><tbody>' . $eqRows . '</tbody></table>'
         : '<p class="muted">No hay equipos pendientes.</p>';
+
+    // Ya pagados (para que el staff vea quién ha pagado, no solo los pendientes)
+    $pag = $pdo->query('SELECT pg.pagado_at, pg.importe_eur, pg.metodo, pg.objeto_tipo,
+        COALESCE(p.nombre_completo, e.nombre_equipo) AS quien, d.nombre AS disc,
+        cobr.nombre_completo AS cobrador
+        FROM pago pg
+        LEFT JOIN inscripcion i ON pg.objeto_tipo="inscripcion" AND i.id=pg.objeto_id
+        LEFT JOIN participante p ON p.id=i.participante_id
+        LEFT JOIN disciplina d ON d.id=i.disciplina_id
+        LEFT JOIN equipo e ON pg.objeto_tipo="equipo" AND e.id=pg.objeto_id
+        LEFT JOIN cuenta cobr ON cobr.id=pg.cobrado_por
+        ORDER BY pg.pagado_at DESC')->fetchAll();
+    $pagRows = '';
+    $pagTotal = 0.0;
+    foreach ($pag as $r) {
+        $pagTotal += (float)$r['importe_eur'];
+        $qui = $r['quien'] . ($r['disc'] ? ' · ' . $r['disc'] : ((string)$r['objeto_tipo'] === 'equipo' ? ' · fútbol' : ''));
+        $cobr = $r['cobrador'] ? '<br><span class="muted">cobró ' . e($r['cobrador']) . '</span>' : '';
+        $pagRows .= '<tr><td>' . e($qui) . $cobr . '</td>'
+            . '<td>' . number_format((float)$r['importe_eur'], 2, ',', '.') . ' €</td>'
+            . '<td>' . e((string)$r['metodo']) . '</td>'
+            . '<td class="muted">' . e(substr((string)$r['pagado_at'], 11, 5)) . '</td></tr>';
+    }
+    $pagTable = $pagRows
+        ? '<p class="muted"><strong>' . count($pag) . '</strong> pagos · <strong>'
+            . number_format($pagTotal, 2, ',', '.') . ' €</strong> cobrados</p>'
+          . '<table class="grid"><thead><tr><th>Quién</th><th>Importe</th><th>Método</th><th>Hora</th></tr></thead><tbody>'
+          . $pagRows . '</tbody></table>'
+        : '<p class="muted">Aún no hay pagos registrados.</p>';
 
     // Bolsa de parejas: quién ha pedido que le asignen pareja (sin_pareja=1), agrupado por actividad
     $bolsa = [];
@@ -315,6 +344,7 @@ $resumen
 <section class="panel"><h2>Pagos pendientes · inscripciones</h2>$insTable</section>
 <section class="panel"><h2>Bolsa de parejas</h2>$bolsaHtml</section>
 <section class="panel"><h2>Pagos pendientes · equipos de fútbol</h2>$eqTable</section>
+<section class="panel"><h2>✅ Ya pagados</h2>$pagTable</section>
 
 <section class="panel"><h2>Enviar notificación</h2>
 <form method="post" class="form">$csrf<input type="hidden" name="do" value="notify">
@@ -362,18 +392,37 @@ function admin_resumen(PDO $pdo): string {
     $eqPre  = (int)$pdo->query("SELECT COUNT(*) FROM equipo WHERE estado='preinscrito'")->fetchColumn();
     $eqPag  = (int)$pdo->query("SELECT COUNT(*) FROM equipo WHERE estado='pagado'")->fetchColumn();
 
-    $rows = $pdo->query("SELECT d.nombre, d.ambito, COUNT(*) n,
+    $rows = $pdo->query("SELECT d.id AS did, d.nombre, d.ambito, COUNT(*) n,
         SUM(i.estado='pagada') pag, COALESCE(SUM(i.precio_eur),0) imp
         FROM inscripcion i JOIN disciplina d ON d.id=i.disciplina_id
         WHERE i.estado<>'anulada' GROUP BY d.id ORDER BY n DESC")->fetchAll();
-    $tr = '';
-    foreach ($rows as $r) {
-        $tr .= '<tr><td>' . e($r['nombre']) . ' <span class="muted">(' . e($r['ambito']) . ')</span></td>'
-             . '<td>' . (int)$r['n'] . '</td><td>' . (int)$r['pag'] . '</td><td>' . $f($r['imp']) . ' €</td></tr>';
+    // Gente apuntada a cada actividad (para desplegar al pinchar)
+    $gente = [];
+    foreach ($pdo->query("SELECT d.id AS did, p.nombre_completo AS persona, p.es_socio,
+            i.estado, i.companero
+            FROM inscripcion i JOIN disciplina d ON d.id=i.disciplina_id
+            JOIN participante p ON p.id=i.participante_id
+            WHERE i.estado<>'anulada'
+            ORDER BY i.estado='pagada' DESC, p.nombre_completo")->fetchAll() as $g) {
+        $gente[(int)$g['did']][] = $g;
     }
-    $actTable = $tr
-        ? '<table class="grid"><thead><tr><th>Actividad</th><th>Inscritos</th><th>Pagados</th><th>Previsto</th></tr></thead><tbody>' . $tr . '</tbody></table>'
-        : '<p class="muted">Sin inscripciones todavía.</p>';
+    $actTable = '';
+    foreach ($rows as $r) {
+        $li = '';
+        foreach ($gente[(int)$r['did']] ?? [] as $g) {
+            $est = (string)$g['estado'] === 'pagada'
+                ? '<span class="tag ok">pagado</span>'
+                : '<span class="tag">pendiente</span>';
+            $socio = (int)$g['es_socio'] === 1 ? '' : ' <span class="muted">(no socio)</span>';
+            $comp = $g['companero'] ? ' <span class="muted">· con ' . e($g['companero']) . '</span>' : '';
+            $li .= '<li>' . e($g['persona']) . ' ' . $est . $socio . $comp . '</li>';
+        }
+        $sum = e($r['nombre']) . ' <span class="muted">(' . e($r['ambito']) . ')</span> — '
+             . '<strong>' . (int)$r['n'] . '</strong> inscritos · ' . (int)$r['pag'] . ' pagados · ' . $f($r['imp']) . ' €';
+        $actTable .= '<details class="act-det"><summary>' . $sum . '</summary>'
+                   . ($li ? '<ul>' . $li . '</ul>' : '<p class="muted">Sin inscritos.</p>') . '</details>';
+    }
+    if ($actTable === '') $actTable = '<p class="muted">Sin inscripciones todavía.</p>';
 
     return '<section class="panel stats"><h2>Resumen económico</h2>'
         . '<div class="kpis">'
