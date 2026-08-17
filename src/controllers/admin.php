@@ -252,7 +252,7 @@ function admin_dashboard(array $u): void {
         LEFT JOIN disciplina d ON d.id=i.disciplina_id
         LEFT JOIN equipo e ON pg.objeto_tipo="equipo" AND e.id=pg.objeto_id
         LEFT JOIN cuenta cobr ON cobr.id=pg.cobrado_por
-        ORDER BY pg.pagado_at DESC')->fetchAll();
+        ORDER BY COALESCE(p.nombre_completo, e.nombre_equipo)')->fetchAll();
     $pagRows = '';
     $pagTotal = 0.0;
     foreach ($pag as $r) {
@@ -403,19 +403,24 @@ function admin_resumen(PDO $pdo): string {
             FROM inscripcion i JOIN disciplina d ON d.id=i.disciplina_id
             JOIN participante p ON p.id=i.participante_id
             WHERE i.estado<>'anulada'
-            ORDER BY i.estado='pagada' DESC, p.nombre_completo")->fetchAll() as $g) {
+            ORDER BY p.nombre_completo")->fetchAll() as $g) {
         $gente[(int)$g['did']][] = $g;
     }
     $actTable = '';
     foreach ($rows as $r) {
         $li = '';
+        $covered = [];   // para que cada pareja salga una sola vez
         foreach ($gente[(int)$r['did']] ?? [] as $g) {
+            $key = mb_strtolower(trim((string)$g['persona']));
+            if (isset($covered[$key])) continue;      // ya salió como pareja de otro
             $est = (string)$g['estado'] === 'pagada'
                 ? '<span class="tag ok">pagado</span>'
                 : '<span class="tag">pendiente</span>';
             $socio = (int)$g['es_socio'] === 1 ? '' : ' <span class="muted">(no socio)</span>';
             $comp = $g['companero'] ? ' <span class="muted">· con ' . e($g['companero']) . '</span>' : '';
             $li .= '<li>' . e($g['persona']) . ' ' . $est . $socio . $comp . '</li>';
+            $covered[$key] = true;
+            if ($g['companero']) $covered[mb_strtolower(trim((string)$g['companero']))] = true;
         }
         $sum = e($r['nombre']) . ' <span class="muted">(' . e($r['ambito']) . ')</span> — '
              . '<strong>' . (int)$r['n'] . '</strong> inscritos · ' . (int)$r['pag'] . ' pagados · ' . $f($r['imp']) . ' €';
@@ -461,6 +466,19 @@ function ctrl_admin_edit(): void {
     $siSel = (int)$r['es_socio'] === 1 ? ' checked' : '';
     $noSel = (int)$r['es_socio'] === 1 ? '' : ' checked';
     $ambito = e($r['ambito']);
+    // Método de pago: editable solo si la inscripción está pagada y tiene cobro registrado
+    $pagoBlock = '';
+    if ((string)$r['estado'] === 'pagada') {
+        $pgSt = $pdo->prepare('SELECT metodo FROM pago WHERE objeto_tipo="inscripcion" AND objeto_id=? ORDER BY id DESC LIMIT 1');
+        $pgSt->execute([$id]);
+        $pgMet = (string)($pgSt->fetchColumn() ?: 'tpv');
+        $tpvSel = $pgMet === 'tpv' ? ' selected' : '';
+        $efeSel = $pgMet === 'efectivo' ? ' selected' : '';
+        $pagoBlock = '<label>Método de pago <select name="metodo_pago">'
+            . '<option value="tpv"' . $tpvSel . '>TPV / tarjeta</option>'
+            . '<option value="efectivo"' . $efeSel . '>Efectivo</option>'
+            . '</select></label>';
+    }
     $c = <<<HTML
 <h1>Editar inscripción</h1>
 <p class="muted">Categoría: $ambito. Al cambiar "socio" se recalcula el precio de todas las actividades de esta persona.</p>
@@ -479,6 +497,7 @@ function ctrl_admin_edit(): void {
   <label>Nivel de pádel (si aplica, 1–4) <input type="number" name="nivel_padel" value="$nivel" min="1" max="4"></label>
   <label>Pareja / compañero (opcional) <input name="companero" value="$comp" maxlength="120"></label>
   <label class="check"><input type="checkbox" name="sin_pareja" value="1"$spjChk> Busca pareja (bolsa de parejas)</label>
+  $pagoBlock
   <button class="primary" type="submit">Guardar cambios</button>
   &nbsp; <a href="/admin" class="linkbtn">Cancelar</a>
 </form>
@@ -522,6 +541,11 @@ function edit_ins_guardar(array $u): void {
         $pdo->prepare('UPDATE inscripcion SET precio_eur=? WHERE participante_id=? AND estado<>"anulada"')
             ->execute([price_for($socio), $r['participante_id']]);
         $pdo->prepare('UPDATE cuenta SET email=? WHERE id=?')->execute([$email, $r['cuenta_id']]);
+        // Método de pago (si se envía y la inscripción tiene un cobro registrado)
+        $metPago = ($_POST['metodo_pago'] ?? '');
+        if ($metPago === 'tpv' || $metPago === 'efectivo') {
+            $pdo->prepare('UPDATE pago SET metodo=? WHERE objeto_tipo="inscripcion" AND objeto_id=?')->execute([$metPago, $id]);
+        }
         $pdo->commit();
         audit('edit_ins', 'id=' . $id . ' por=' . $u['id']);
         flash_set('Inscripción actualizada.');
