@@ -35,8 +35,10 @@ function preins_banner(): string {
             return '<div class="banner info">🗓️ La preinscripción abre el <strong>' . e($open)
                  . '</strong> y cierra el <strong>' . e($close) . '</strong>.</div>';
         case 'cerrada':
+            $mail = cfg('CLUB_EMAIL', '');
+            $contacto = $mail !== '' ? ' en <a href="mailto:' . e($mail) . '">' . e($mail) . '</a>' : '';
             return '<div class="banner cerrado">⛔ El plazo de preinscripción se cerró el <strong>'
-                 . e($close) . '</strong>. Si tienes dudas, contacta con el club.</div>';
+                 . e($close) . '</strong>. Si tienes dudas, contacta con el club' . $contacto . '.</div>';
         default:
             return '<div class="banner abierto">✅ Preinscripción <strong>abierta</strong>. '
                  . 'Plazo hasta el <strong>' . e($close) . '</strong>.</div>';

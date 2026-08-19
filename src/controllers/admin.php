@@ -244,7 +244,7 @@ function admin_dashboard(array $u): void {
 
     // Ya pagados (para que el staff vea quién ha pagado, no solo los pendientes)
     $pag = $pdo->query('SELECT pg.pagado_at, pg.importe_eur, pg.metodo, pg.objeto_tipo,
-        COALESCE(p.nombre_completo, e.nombre_equipo) AS quien, d.nombre AS disc,
+        COALESCE(p.nombre_completo, e.nombre_equipo) AS quien, d.nombre AS disc, d.ambito AS disc_ambito,
         cobr.nombre_completo AS cobrador
         FROM pago pg
         LEFT JOIN inscripcion i ON pg.objeto_tipo="inscripcion" AND i.id=pg.objeto_id
@@ -257,7 +257,7 @@ function admin_dashboard(array $u): void {
     $pagTotal = 0.0;
     foreach ($pag as $r) {
         $pagTotal += (float)$r['importe_eur'];
-        $qui = $r['quien'] . ($r['disc'] ? ' · ' . $r['disc'] : ((string)$r['objeto_tipo'] === 'equipo' ? ' · fútbol' : ''));
+        $qui = $r['quien'] . ($r['disc'] ? ' · ' . $r['disc'] . ' (' . $r['disc_ambito'] . ')' : ((string)$r['objeto_tipo'] === 'equipo' ? ' · fútbol' : ''));
         $cobr = $r['cobrador'] ? '<br><span class="muted">cobró ' . e($r['cobrador']) . '</span>' : '';
         $pagRows .= '<tr><td>' . e($qui) . $cobr . '</td>'
             . '<td>' . number_format((float)$r['importe_eur'], 2, ',', '.') . ' €</td>'
