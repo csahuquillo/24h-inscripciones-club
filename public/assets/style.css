@@ -123,3 +123,14 @@ img{max-width:100%;height:auto}
 /* --- Tags socio (movidos de inline a clase por CSP) --- */
 .tag.ok{background:#dcfce7;border-color:#86efac;color:#166534}
 .tag.err{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+
+/* --- Listas por deporte (Mi cuenta) --- */
+.listas{margin:.4rem 0 0;padding-left:1.6rem}
+.listas li{margin:.25rem 0;line-height:1.4}
+.listas li.me{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:.25rem .5rem;margin-left:-.5rem;font-weight:600}
+.listas li.me .tag{background:#059669;border-color:#059669;color:#fff;margin-left:.4rem}
+
+/* --- Botón WhatsApp en emparejamientos --- */
+.listas a.wa{display:inline-block;margin-left:.45rem;font-size:.8rem;font-weight:600;color:#075e54;background:#dcf8c6;border:1px solid #86efac;border-radius:6px;padding:.05rem .45rem;text-decoration:none;white-space:nowrap}
+.listas a.wa:hover{background:#bbf7d0}
+.listas li.me a.wa{display:none}

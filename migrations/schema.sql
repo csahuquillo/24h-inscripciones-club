@@ -122,6 +122,21 @@ CREATE TABLE IF NOT EXISTS grupo_miembro (
   CONSTRAINT fk_gm_grupo FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Horario de partidos publicado por el responsable de cada disciplina.
+-- p1/p2 son texto libre (el nombre de cada pareja tal cual lo publica el cuadro),
+-- para poder importar cuadros externos sin depender de los ids de inscripción.
+CREATE TABLE IF NOT EXISTS partido (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  disciplina_id INT NOT NULL,
+  orden         INT NOT NULL,
+  franja        VARCHAR(20) NOT NULL,
+  pista         TINYINT NOT NULL,
+  p1            VARCHAR(160) NOT NULL,
+  p2            VARCHAR(160) NOT NULL,
+  KEY idx_partido_disc (disciplina_id),
+  CONSTRAINT fk_partido_disc FOREIGN KEY (disciplina_id) REFERENCES disciplina(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS horario (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   disciplina_id INT NULL,

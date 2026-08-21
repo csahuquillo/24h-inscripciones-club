@@ -379,12 +379,15 @@ HTML;
 /** Resumen económico y estadísticas para el panel. */
 function admin_resumen(PDO $pdo): string {
     $f = fn($x) => number_format((float)$x, 2, ',', '.');
-    $previsto = (float)$pdo->query("SELECT COALESCE(SUM(precio_eur),0) FROM inscripcion WHERE estado<>'anulada'")->fetchColumn()
-              + (float)$pdo->query("SELECT COALESCE(SUM(precio_total_eur),0) FROM equipo WHERE estado<>'anulado'")->fetchColumn();
     $cobrado = (float)$pdo->query("SELECT COALESCE(SUM(importe_eur),0) FROM pago")->fetchColumn();
     $tpv = (float)$pdo->query("SELECT COALESCE(SUM(importe_eur),0) FROM pago WHERE metodo='tpv'")->fetchColumn();
     $efe = (float)$pdo->query("SELECT COALESCE(SUM(importe_eur),0) FROM pago WHERE metodo='efectivo'")->fetchColumn();
-    $pendiente = $previsto - $cobrado;
+    // Pendiente de cobro = dinero que AÚN deben los preinscritos (lo que entrará).
+    // No usamos previsto-cobrado: se distorsiona con pagos retenidos sobre inscripciones
+    // anuladas (p.ej. forfeits "sin devolución"), que inflan lo cobrado sin previsto asociado.
+    $pendiente = (float)$pdo->query("SELECT COALESCE(SUM(precio_eur),0) FROM inscripcion WHERE estado='preinscrita'")->fetchColumn()
+               + (float)$pdo->query("SELECT COALESCE(SUM(precio_total_eur),0) FROM equipo WHERE estado='preinscrito'")->fetchColumn();
+    $previsto = $cobrado + $pendiente;   // total esperado cuando entre todo lo pendiente
     $conv = $previsto > 0 ? round($cobrado / $previsto * 100) : 0;
 
     $insPre = (int)$pdo->query("SELECT COUNT(*) FROM inscripcion WHERE estado='preinscrita'")->fetchColumn();
@@ -431,8 +434,8 @@ function admin_resumen(PDO $pdo): string {
 
     return '<section class="panel stats"><h2>Resumen económico</h2>'
         . '<div class="kpis">'
-        . '<div class="kpi"><span class="kn">' . $f($previsto) . ' €</span><span class="kl">Previsto (preinscripciones)</span></div>'
-        . '<div class="kpi ok"><span class="kn">' . $f($cobrado) . ' €</span><span class="kl">Cobrado real</span></div>'
+        . '<div class="kpi"><span class="kn">' . $f($previsto) . ' €</span><span class="kl">Previsto (total)</span></div>'
+        . '<div class="kpi ok"><span class="kn">' . $f($cobrado) . ' €</span><span class="kl">Cobrado real (en caja)</span></div>'
         . '<div class="kpi warn"><span class="kn">' . $f($pendiente) . ' €</span><span class="kl">Pendiente de cobro</span></div>'
         . '<div class="kpi"><span class="kn">' . $conv . ' %</span><span class="kl">Conversión</span></div>'
         . '</div>'

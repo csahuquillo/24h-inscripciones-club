@@ -34,8 +34,13 @@ nginx**, pensada para correr en un servidor pequeño.
   - **Resumen económico**: previsto (según preinscripciones) vs. cobrado real (TPV/efectivo),
     pendiente, % conversión y desglose por actividad.
   - Cruce con el **padrón de socios** (indicador socio ✓ / ⚠ sin match) para aplicar el precio.
-- **Área de usuario**: ver inscripciones, estado de pago, emparejamientos y horarios; cambio de
-  contraseña.
+- **Área de usuario** (todo tras login, `noindex`):
+  - Sus inscripciones y estado de pago; cambio de contraseña.
+  - **Tus emparejamientos**: el grupo que le ha tocado en cada disciplina, con los rivales y un
+    enlace `wa.me` para contactar con cada pareja **solo de su grupo** (sin exponer el número).
+  - **Tus partidos**: hora, pista y rival, a partir del cuadro publicado por el responsable.
+  - **Listas de sus deportes**: todas las parejas de las categorías en las que participa
+    (una fila por pareja, sin datos de contacto), para detectar errores de inscripción.
 - **Correo transaccional por AWS SES** firmado con SigV4 usando el **rol de instancia**
   (sin secretos estáticos en disco).
 - **Seguridad por defecto**: argon2id, sentencias preparadas (sin SQLi), escape de salida
