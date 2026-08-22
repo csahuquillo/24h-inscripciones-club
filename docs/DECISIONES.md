@@ -192,24 +192,47 @@ edición, reconstruido a partir del cuadro que publicó su responsable:
 
 **Punto de partida.** 15 parejas repartidas en **3 grupos de 5**. A cuartos de final pasan **8**.
 
-**El problema.** 8 no se reparte a partes iguales entre 3 grupos. Los dos primeros de cada grupo son
-6, así que faltan 2. La solución aplicada fue **repescar a los dos mejores terceros**, comparándolos
-entre grupos. Se ve en el reparto del cuadro publicado: **3 unidades de un grupo, 3 de otro y 2 del
-tercero**, que es exactamente lo que sale de "2 fijos por grupo + 2 repescados".
+**El método, tal cual.** No se seleccionan "los N primeros de cada grupo" por separado: se construye
+un **ranking global único** con todas las unidades que optan a la fase final, y de ahí sale el cuadro.
+El orden del ranking es, en este orden exacto:
 
-**Cómo se verificó.** Uno de los tres grupos tenía su liguilla completa en el chat (los 10 partidos
-del round robin de 5). Al calcular su tabla y contrastarla con el cuadro apareció una anomalía muy
-informativa: **el primero de ese grupo no estaba en cuartos, y sí el tercero**. La explicación
-estaba en el mismo chat una hora antes: la pareja clasificada avisó de que **no iba a estar
-disponible** para la fase final, y el responsable contestó *"lo acabo de ver, modifico, gracias por
-avisar"*, rehízo el cuadro y borró la versión anterior. De ahí sale la regla que faltaba:
+1. **Puesto que ocupa en su grupo** (todos los primeros, luego todos los segundos, luego los terceros).
+2. **Partidos ganados**.
+3. **Diferencia de tantos**.
 
-> **Si una unidad clasificada renuncia a la fase final, entra la siguiente de su grupo**, y el
-> cuadro se regenera. No se deja el hueco ni se repesca de otro grupo.
+El primer criterio es el que no se ve a simple vista y el que lo explica todo: en la tabla real, un
+**segundo de grupo con 2 victorias y diferencia −6 va por delante de un tercero con 2 victorias y
+diferencia +5**. Ordenar solo por victorias y diferencia da un orden distinto del que se jugó. El
+puesto en el grupo manda sobre el rendimiento absoluto, que es lo justo cuando los grupos no se han
+enfrentado entre sí.
 
-Reconstruir la tabla de un solo grupo bastó para deducir el criterio completo, porque la excepción
-delató la regla. Merece la pena guardar los resultados aunque la fase de grupos ya haya terminado:
-son la única forma de auditar un cuadro que llega hecho.
+Con 3 grupos entran los 3 primeros de cada uno, o sea 9 candidatos para 8 plazas de cuartos. En la
+edición real el ajuste lo resolvió una **baja**: una pareja clasificada avisó de que no podía jugar
+la fase final, se marcó como BAJA en el ranking y se renumeró del 1 al 8 saltándola. Sin esa baja
+habría habido que descartar al noveno.
+
+> **Si una unidad clasificada renuncia**, se marca como baja, **se salta en la numeración** y el
+> resto sube. No se deja hueco ni se repesca de otro grupo.
+
+**La siembra es la clásica**: `1-8, 2-7, 3-6, 4-5`. En los cuatro cuartos de la edición real las
+posiciones de cada enfrentamiento **suman siempre 9**. Como es siembra pura por ranking, **no se
+evita** que coincidan dos unidades del mismo grupo: pasó, se cruzaron el 2º y el 7º, ambos del mismo
+grupo.
+
+**Las incomparecencias se anotan 6-0.** Se dedujo comparando la tabla del responsable con la
+recalculada desde los resultados del chat: había una desviación constante de 5 tantos por
+incomparecencia, que cuadra exactamente si el partido no jugado se anota `6-0` y no `1-0`. **Esto no
+está unificado entre actividades**: en otra disciplina de la misma edición el responsable anotó las
+incomparecencias `1-0`. Como la diferencia de tantos es criterio de desempate, dos actividades con
+convenios distintos pueden ordenar de forma distinta el mismo rendimiento. **Hay que fijar un único
+convenio para todo el evento.**
+
+**Cómo se auditó todo esto.** Uno de los grupos tenía su liguilla completa en el chat (los 10
+partidos del round robin de 5). Recalcular esa tabla y contrastarla con el cuadro publicado permitió
+detectar la baja, deducir el marcador de las incomparecencias y descartar la hipótesis equivocada de
+"dos por grupo más los mejores terceros", que encajaba con el reparto 3/3/2 pero no con el orden
+real. **Merece la pena conservar los resultados aunque la fase de grupos haya terminado**: son la
+única forma de auditar un cuadro que llega hecho.
 
 **La programación de la ronda.** Los 4 cuartos se colocaron en **dos franjas de media hora sobre dos
 pistas** (dos partidos simultáneos a una hora, dos a la siguiente): toda la ronda se despacha en una
@@ -221,6 +244,25 @@ atrás desde la hora a la que se quiere entregar los trofeos.
 Es decir, no se aplicó la regla habitual de separar en la primera ronda a quienes ya se habían
 cruzado en la fase de grupos. Puede ser deliberado o consecuencia de la repesca, pero **hay que
 decidirlo explícitamente**, porque cambia el emparejamiento.
+
+### Fases finales pequeñas: adaptar el formato al número que queda
+
+No todas las actividades llegan a la fase final con gente suficiente para el cuadro previsto, y la
+regla que se aplicó fue **reducir el formato en vez de forzarlo**:
+
+- Liguilla de 4 con **una retirada**: en lugar de montar unas semifinales cojas con los tres que
+  quedan, se juega **final directa entre los dos primeros**.
+- Actividad con **solo dos participantes**: **final directa**, sin fase previa.
+- Dos grupos: **semifinales cruzadas** 1ºA-2ºB y 1ºB-2ºA.
+
+Generalizando, y esto sí es automatizable: con `N` unidades disponibles para la fase final, se juega
+el cuadro de la **mayor potencia de 2 que quepa en N** (2 → final; 4 → semifinales; 8 → cuartos), y
+si sobran unidades caen las peores del ranking. Es preferible a rellenar con *byes*, que en un evento
+de un día regalan una ronda y descuadran los horarios.
+
+La consecuencia práctica: **el formato de la fase final no se puede fijar del todo antes de que
+termine la de grupos**, porque depende de cuántos siguen en pie. Lo que sí se puede fijar de antemano
+es la *regla* que decide el formato.
 
 ### La técnica de publicación: publicar, escuchar, corregir
 
@@ -244,24 +286,28 @@ Los criterios se dedujeron del cuadro publicado, pero **no están escritos en ni
 resolvieron sobre la marcha. Como no dependen de nadie más, lo sensato es **fijarlos nosotros** y
 meterlos en las bases de la próxima edición. Propuesta, coherente con lo que de hecho se hizo:
 
-1. **Cuántos pasan.** A la fase final pasan `2 × nº de grupos` unidades más las mejores terceras
-   necesarias hasta completar la potencia de 2 más cercana. Con 3 grupos: 6 + 2 = 8.
-2. **Orden dentro del grupo.** Partidas ganadas → enfrentamiento directo si el empate es entre dos →
-   diferencia de tantos si es entre tres o más → tantos a favor.
-3. **Comparación entre grupos** para la repesca: misma escala, pero **normalizada por partidos
-   jugados** si los grupos no tienen el mismo tamaño, porque comparar totales absolutos entre un
-   grupo de 5 y otro de 4 es injusto. Ojo también con las incomparecencias: un `1-0` mueve poco la
-   diferencia de tantos y puede distorsionar la comparación frente a quien ganó jugando.
-4. **Siembra**: 1º contra el peor clasificado disponible, y **evitar en la primera ronda** el cruce
-   entre unidades del mismo grupo siempre que la siembra lo permita. En la última edición no se
-   evitó y dos parejas del mismo grupo se vieron en cuartos; conviene decidirlo, no dejarlo al azar.
-5. **Renuncias**: si una clasificada no puede jugar la fase final, **entra la siguiente de su
-   grupo** y se regenera el cuadro. Exige un estado explícito de *disponible para la fase final*, y
-   preguntarlo **antes** de generar el cuadro, no después.
-6. **Incomparecencias** en la fase de grupos: cómo puntúan y si además penalizan (ver la penalización
-   pendiente en el [roadmap](../ROADMAP.md)).
+1. **Ranking global**, tal como se hizo: puesto en el grupo → partidos ganados → diferencia de
+   tantos. Conviene añadir un cuarto criterio (tantos a favor) para los empates que queden.
+2. **Cuántos pasan.** Entran los `K` primeros de cada grupo hasta cubrir la potencia de 2 más
+   cercana. Con 3 grupos y cuartos de final: los 3 primeros de cada uno, 9 candidatos para 8 plazas,
+   y **cae el último del ranking**. Es el punto más flojo del método actual y conviene decidirlo de
+   antemano en vez de dejar que lo resuelva una baja, como pasó esta vez.
+3. **Convenio único de incomparecencia para todo el evento.** En la última edición convivieron `6-0`
+   y `1-0` según la actividad. Como la diferencia de tantos desempata, hay que elegir uno. Mejor
+   aún: que la incomparecencia **cuente como victoria pero no sume diferencia**, para que no premie
+   al que se libra de jugar frente al que gana en la pista.
+4. **Grupos de distinto tamaño**: si los hay, la diferencia de tantos debe **normalizarse por
+   partidos jugados** antes de comparar unidades de grupos distintos; si no, el grupo más grande
+   sale beneficiado.
+5. **Siembra** `1-N, 2-(N-1)…`, y decidir **si se evita o no** que se crucen en la primera ronda dos
+   unidades del mismo grupo. En la última edición no se evitó; conviene que sea una decisión, no un
+   efecto colateral.
+6. **Renuncias**: se marcan como baja, se saltan en la numeración y el resto sube. Exige un estado
+   explícito de *disponible para la fase final*, preguntado **antes** de generar el cuadro.
+7. **Incomparecencias** en la fase de grupos: si además penalizan de cara al año siguiente (ver el
+   [roadmap](../ROADMAP.md)).
 
-Con esos seis puntos fijados, generar el cuadro es determinista: una función que recibe las tablas de
+Con esos siete puntos fijados, generar el cuadro es determinista: una función que recibe las tablas de
 los grupos y la lista de quién sigue disponible, y devuelve el cuadro sembrado y la parrilla de horas.
 
 ## Notas de operación

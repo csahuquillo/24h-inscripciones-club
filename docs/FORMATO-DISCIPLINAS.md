@@ -75,8 +75,11 @@ cada disciplina y son el motivo de la mayoría de rehacer-el-cuadrante de esta e
 
 ## Fase final
 
-- **Tenis dobles**: cruce de semifinales entre el **1º y el 2º de cada grupo** (1ºA-2ºB y 1ºB-2ºA),
-  final y 3er/4º puesto. Se juega al día siguiente, hora acordada con los implicados.
+- **Tenis dobles**: cruce de semifinales **1ºA-2ºB y 1ºB-2ºA**, final y 3er/4º puesto. Se juega al
+  día siguiente, hora acordada con los implicados.
+- **Tenis individual**: la liguilla era de 4 jugadores. Con la **retirada de uno**, se resolvió
+  jugando **una final directa entre los dos primeros**, en vez de montar semifinales con tres.
+- **Tenis infantil**: solo dos participantes, así que **final directa** entre ellos.
 - **Pádel −4 (adultos)**: con 3 grupos de 5 parejas, pasan **8 a cuartos de final**: los **2 primeros
   de cada grupo más los 2 mejores terceros**. Si una clasificada **renuncia**, entra la siguiente de
   su grupo (pasó: renunció la primera de un grupo y entró la tercera). Los cuartos se programaron en
