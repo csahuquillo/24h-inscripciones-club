@@ -6,8 +6,13 @@ function ctrl_account(): void {
     $pdo = db();
 
     // Participantes + inscripciones
-    $parts = $pdo->prepare('SELECT * FROM participante WHERE cuenta_id = ? ORDER BY id');
-    $parts->execute([$u['id']]);
+    // Participantes de la cuenta MÁS los homónimos dados de alta desde otra cuenta:
+    // es habitual que a alguien lo inscriba su pareja (p. ej. el truc lo apunta uno de
+    // los dos), y si no, esa actividad no le aparecía en su propia cuenta.
+    $parts = $pdo->prepare('SELECT * FROM participante WHERE cuenta_id = ?
+        OR nombre_completo IN (SELECT nombre_completo FROM participante WHERE cuenta_id = ?)
+        ORDER BY nombre_completo, id');
+    $parts->execute([$u['id'], $u['id']]);
     $partList = $parts->fetchAll();
 
     $insByPart = [];
@@ -37,9 +42,13 @@ function ctrl_account(): void {
             . $rows . '</tbody></table></article>';
     }
 
-    // Equipos de fútbol
-    $eqs = $pdo->prepare('SELECT * FROM equipo WHERE cuenta_id = ?');
-    $eqs->execute([$u['id']]);
+    // Equipos de fútbol: los que gestiona la cuenta y también aquellos donde juega
+    // alguno de sus participantes (el equipo suele darlo de alta otro responsable).
+    $eqs = $pdo->prepare('SELECT DISTINCT e.* FROM equipo e
+        LEFT JOIN equipo_miembro m ON m.equipo_id = e.id
+        WHERE e.estado <> "anulado" AND (e.cuenta_id = ?
+          OR m.nombre_completo IN (SELECT nombre_completo FROM participante WHERE cuenta_id = ?))');
+    $eqs->execute([$u['id'], $u['id']]);
     $eqHtml = '';
     foreach ($eqs->fetchAll() as $eq) {
         $mm = $pdo->prepare('SELECT * FROM equipo_miembro WHERE equipo_id = ? ORDER BY id');
@@ -94,14 +103,16 @@ function listas_por_deporte(int $cuentaId): string {
         FROM participante p
         JOIN inscripcion i ON i.participante_id = p.id
         JOIN disciplina d ON d.id = i.disciplina_id
-        WHERE p.cuenta_id = ? AND i.estado NOT IN ('anulada','anulado')
+        WHERE (p.cuenta_id = ?
+               OR p.nombre_completo IN (SELECT nombre_completo FROM participante WHERE cuenta_id = ?))
+          AND i.estado NOT IN ('anulada','anulado')
         ORDER BY d.nombre, p.ambito");
-    $st->execute([$cuentaId]);
+    $st->execute([$cuentaId, $cuentaId]);
     $cats = $st->fetchAll();
     if (!$cats) return '';
 
     // Nombres propios de la cuenta (para resaltar)
-    $mn = $pdo->prepare('SELECT nombre_completo FROM participante WHERE cuenta_id = ?');
+    $mn = $pdo->prepare('SELECT DISTINCT nombre_completo FROM participante WHERE cuenta_id = ?');
     $mn->execute([$cuentaId]);
     $mine = [];
     foreach ($mn->fetchAll() as $m) $mine[canon_nombre($m['nombre_completo'])] = true;
@@ -151,11 +162,20 @@ function canon_nombre(?string $s): string {
 /** Horario de partidos del usuario (tabla `partido`, poblada desde el cuadro del responsable). */
 function partidos_de_cuenta(int $cuentaId): string {
     $pdo = db();
-    $mn = $pdo->prepare('SELECT nombre_completo FROM participante WHERE cuenta_id = ?');
+    $mn = $pdo->prepare('SELECT DISTINCT nombre_completo FROM participante WHERE cuenta_id = ?');
     $mn->execute([$cuentaId]);
     $mine = [];
     foreach ($mn->fetchAll() as $m) { $c = canon_nombre($m['nombre_completo']); if ($c !== '') $mine[] = $c; }
     if (!$mine) return '';
+    // equipos donde juega alguien de la cuenta (para mostrar también sus partidos de fútbol)
+    $eq = $pdo->prepare('SELECT DISTINCT e.nombre_equipo FROM equipo e
+        LEFT JOIN equipo_miembro m ON m.equipo_id = e.id
+        WHERE e.estado <> "anulado" AND (e.cuenta_id = ?
+          OR m.nombre_completo IN (SELECT nombre_completo FROM participante WHERE cuenta_id = ?))');
+    $eq->execute([$cuentaId, $cuentaId]);
+    $misEquipos = [];
+    foreach ($eq->fetchAll() as $r) $misEquipos[canon_nombre($r['nombre_equipo'])] = true;
+
     $st = $pdo->query("SELECT pt.franja, pt.pista, pt.p1, pt.p2, pt.orden, d.nombre AS disc, d.ambito
         FROM partido pt JOIN disciplina d ON d.id = pt.disciplina_id ORDER BY pt.orden, pt.pista");
     $rows = '';
@@ -163,6 +183,8 @@ function partidos_de_cuenta(int $cuentaId): string {
         $c1 = canon_nombre($r['p1']); $c2 = canon_nombre($r['p2']);
         $in1 = false; $in2 = false;
         foreach ($mine as $nm) { if (mb_strpos($c1, $nm) !== false) $in1 = true; if (mb_strpos($c2, $nm) !== false) $in2 = true; }
+        if (isset($misEquipos[$c1])) $in1 = true;
+        if (isset($misEquipos[$c2])) $in2 = true;
         if (!$in1 && !$in2) continue;
         $rival = $in1 ? $r['p2'] : $r['p1'];
         $rows .= '<tr><td>' . e($r['franja']) . '</td><td>Pista ' . (int)$r['pista'] . '</td><td>' . e($rival)
@@ -214,12 +236,13 @@ function grupos_de_cuenta(int $cuentaId): string {
         LEFT JOIN participante p ON p.id = i.participante_id
         LEFT JOIN equipo e ON e.id = gm.equipo_id
         WHERE p.cuenta_id = ? OR e.cuenta_id = ?
+           OR p.nombre_completo IN (SELECT nombre_completo FROM participante WHERE cuenta_id = ?)
         ORDER BY d.nombre, g.etiqueta');
-    $st->execute([$cuentaId, $cuentaId]);
+    $st->execute([$cuentaId, $cuentaId, $cuentaId]);
     $groups = $st->fetchAll();
     if (!$groups) return '';
     // nombres propios (para resaltar la pareja del usuario)
-    $mn = $pdo->prepare('SELECT nombre_completo FROM participante WHERE cuenta_id = ?');
+    $mn = $pdo->prepare('SELECT DISTINCT nombre_completo FROM participante WHERE cuenta_id = ?');
     $mn->execute([$cuentaId]);
     $mine = [];
     foreach ($mn->fetchAll() as $m) $mine[canon_nombre($m['nombre_completo'])] = true;

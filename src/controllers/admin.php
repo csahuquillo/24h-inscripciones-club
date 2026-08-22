@@ -271,12 +271,16 @@ function admin_dashboard(array $u): void {
           . $pagRows . '</tbody></table>'
         : '<p class="muted">Aún no hay pagos registrados.</p>';
 
-    // Bolsa de parejas: quién ha pedido que le asignen pareja (sin_pareja=1), agrupado por actividad
+    // Bolsa de parejas: quién sigue sin pareja (sin_pareja=1), agrupado por actividad.
+    // Consulta propia: incluye también a quien YA pagó — si no, los pagados que buscan
+    // pareja quedaban fuera de la bolsa (solo se veía a los preinscritos).
     $bolsa = [];
-    foreach ($ins as $r) {
-        if ((int)$r['sin_pareja'] !== 1) continue;
-        $bolsa[$r['disc']][] = $r;
-    }
+    $bq = $pdo->query('SELECT i.id, i.companero, d.nombre AS disc, p.nombre_completo AS part, p.es_socio, c.email
+        FROM inscripcion i JOIN participante p ON p.id=i.participante_id JOIN cuenta c ON c.id=p.cuenta_id
+        JOIN disciplina d ON d.id=i.disciplina_id
+        WHERE i.sin_pareja=1 AND i.estado<>"anulada" AND (i.companero IS NULL OR i.companero="")
+        ORDER BY d.nombre, p.nombre_completo');
+    foreach ($bq->fetchAll() as $r) $bolsa[$r['disc']][] = $r;
     $bolsaHtml = '';
     if ($bolsa) {
         ksort($bolsa);
