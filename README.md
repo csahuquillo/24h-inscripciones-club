@@ -77,6 +77,10 @@ migrations/
 bin/
   create_admin.php        crea un administrador (CLI)
   send_notifications.php  procesa la cola de email (cron cada minuto)
+docs/
+  FORMATO-DISCIPLINAS.md  formato de cada actividad: grupos, sistema,
+                          duración, instalaciones y reglas del cuadrante
+  DECISIONES.md           decisiones tomadas, por qué, y con qué se tropezó
 ```
 
 ## Requisitos
@@ -183,10 +187,27 @@ por IP, cabeceras **CSP/HSTS**, `audit_log`, manejador global de errores y corre
 con credenciales temporales del rol de instancia. Reporta problemas por *issue* (sin incluir
 datos sensibles).
 
+## Cómo se organiza una edición
+
+Antes de montar una edición conviene leer los dos documentos de `docs/`, escritos precisamente para
+no depender de quién organizó la anterior:
+
+- **[docs/FORMATO-DISCIPLINAS.md](docs/FORMATO-DISCIPLINAS.md)** — cómo se organiza cada actividad:
+  unidad de inscripción (jugador, pareja o equipo), número y tamaño de los grupos, sistema de
+  competición, duración de los encuentros, instalaciones y franjas. Incluye las **reglas de
+  construcción del cuadrante** (descanso mínimo entre partidos del mismo jugador, instalación de
+  reserva, comprobación de solapes entre disciplinas, prioridad cuando dos actividades chocan) y
+  los criterios de puntuación y fase final.
+- **[docs/DECISIONES.md](docs/DECISIONES.md)** — el porqué de cada decisión y los problemas con los
+  que se tropezó, empezando por el manejo de **parejas**, que fue el origen de la mayoría.
+
 ## Roadmap
 
-Ver [ROADMAP.md](ROADMAP.md). Destacan la **generación automática de cuadros con siembra**, el
-**pago online desde el móvil** con pasarela y la **integración con el listado de socios** del club.
+Ver [ROADMAP.md](ROADMAP.md). Lo primero para la próxima edición es la **consolidación de parejas**
+(que una pareja aparezca una sola vez), el **sorteo de emparejamientos** en lugar del orden
+alfabético, el **control de las horas de juego** y la **introducción de resultados**. Después,
+la **generación automática de cuadros con siembra**, el **pago online desde el móvil** con pasarela
+y la **integración con el listado de socios** del club.
 
 ## Licencia
 
