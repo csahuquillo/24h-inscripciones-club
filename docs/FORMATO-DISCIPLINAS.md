@@ -77,9 +77,22 @@ cada disciplina y son el motivo de la mayoría de rehacer-el-cuadrante de esta e
 
 - **Tenis dobles**: cruce de semifinales entre el **1º y el 2º de cada grupo** (1ºA-2ºB y 1ºB-2ºA),
   final y 3er/4º puesto. Se juega al día siguiente, hora acordada con los implicados.
+- **Pádel −4 (adultos)**: con 3 grupos de 5 parejas, pasan **8 a cuartos de final**: los **2 primeros
+  de cada grupo más los 2 mejores terceros**. Los cuartos se programaron en **dos franjas de 30 min
+  sobre dos pistas** (dos partidos simultáneos por franja), de modo que la ronda entera se resuelve
+  en una hora y deja sitio a semifinales y final el mismo día. En el cuadro que se jugó **sí llegaron
+  a cruzarse dos parejas del mismo grupo** en cuartos.
+- **Pádel infantil**: liguilla única de 7 parejas; pasan las **4 primeras** y se cruzan **1º-4º y
+  2º-3º**. Criterios: partidas ganadas; empate entre dos, resultado directo; empate entre tres o más,
+  mejor diferencia de puntos.
 - **Truc**: fase de grupos hasta las 09:00 y fase final a partir de las 16:00.
+- **Frontón adultos**: semifinales a las 19:00 y final a las 19:30.
 - **Resto**: la fase final se acordó sobre la marcha con el responsable de cada disciplina.
   **Conviene cerrarla por escrito antes de empezar**, porque condiciona las hojas de resultados.
+
+Los criterios de corte, repesca y siembra que hay que dejar cerrados para poder generar estos
+cuadros automáticamente están en
+[DECISIONES.md](DECISIONES.md#lo-que-hay-que-dejar-cerrado-antes-de-automatizar-esto).
 
 ## Puntuación
 

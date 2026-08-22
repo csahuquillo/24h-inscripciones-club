@@ -183,6 +183,51 @@ es decisivo y que no se puede anunciar nada hasta tenerlo.
 Automatizado, esto es una función que recibe los resultados de una actividad y devuelve tabla y
 cruces, más un aviso de "faltan N partidos" y "de ellos, estos son decisivos".
 
+## Cómo se monta la fase final cuando hay varios grupos
+
+La liguilla de un solo grupo es directa (ver el apartado anterior). Cuando la actividad se juega en
+**varios grupos** y a la fase final pasa un número de unidades que no es múltiplo del número de
+grupos, hace falta un criterio extra. Así se resolvió en la actividad más grande de la última
+edición, reconstruido a partir del cuadro que publicó su responsable:
+
+**Punto de partida.** 15 parejas repartidas en **3 grupos de 5**. A cuartos de final pasan **8**.
+
+**El problema.** 8 no se reparte a partes iguales entre 3 grupos. Los dos primeros de cada grupo son
+6, así que faltan 2. La solución aplicada fue **repescar a los dos mejores terceros**, comparándolos
+entre grupos. Se ve en el reparto del cuadro publicado: **3 parejas de un grupo, 3 de otro y 2 del
+tercero**, que es exactamente lo que sale de "2 fijos por grupo + 2 repescados".
+
+**La programación de la ronda.** Los 4 cuartos se colocaron en **dos franjas de media hora sobre dos
+pistas** (dos partidos simultáneos a una hora, dos a la siguiente): toda la ronda se despacha en una
+hora, que es lo que permite encadenar semifinales y final el mismo día. Es un buen patrón a
+conservar: **cada ronda ocupa `nº de partidos / nº de pistas` franjas**, y conviene calcularlo hacia
+atrás desde la hora a la que se quiere entregar los trofeos.
+
+**Un detalle nada obvio:** en ese cuadro **dos parejas del mismo grupo se enfrentaron en cuartos**.
+Es decir, no se aplicó la regla habitual de separar en la primera ronda a quienes ya se habían
+cruzado en la fase de grupos. Puede ser deliberado o consecuencia de la repesca, pero **hay que
+decidirlo explícitamente**, porque cambia el emparejamiento.
+
+### Lo que hay que dejar cerrado antes de automatizar esto
+
+El cuadro se puede reproducir, pero **los criterios exactos no están escritos en ninguna parte** y
+se resolvieron sobre la marcha. Antes de la próxima edición hay que acordarlos con el responsable de
+cada actividad y **meterlos en las bases**:
+
+1. **Cuántos pasan** a la fase final y, si no es múltiplo del número de grupos, **cuántos se repescan**.
+2. **Orden dentro del grupo**: qué se mira primero y en qué orden se aplican los desempates.
+3. **Comparación entre grupos** para la repesca: los terceros de grupos distintos han jugado contra
+   rivales distintos, así que hace falta una regla explícita (partidas ganadas, luego diferencia de
+   tantos, luego tantos a favor…). Ojo si los grupos **no tienen el mismo número de unidades**: ahí
+   comparar totales absolutos es injusto y hay que normalizar por partidos jugados.
+4. **Siembra del cuadro**: qué puesto se enfrenta a qué puesto, y **si se evita o no** que coincidan
+   en la primera ronda dos unidades del mismo grupo.
+5. **Qué hacer con las incomparecencias** a efectos de clasificación (ver la penalización pendiente
+   en el [roadmap](../ROADMAP.md)).
+
+Con esos cinco puntos fijados, generar el cuadro es determinista y no hace falta que lo monte a mano
+el responsable de la actividad, que es justo lo que se quiere evitar.
+
 ## Notas de operación
 
 - **Los audios y las fotos de papel son parte del canal.** Buena parte de las instrucciones de los
