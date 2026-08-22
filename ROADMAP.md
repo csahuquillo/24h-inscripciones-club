@@ -7,9 +7,10 @@ realista en PHP sencillo, sin apps nativas.
 
 ## Para la próxima edición (lecciones de la última)
 
-Cuatro carencias que en la última edición hubo que suplir a mano, fuera de la aplicación, con
-hojas de cálculo y mensajería. El objetivo es que el año que viene el control esté entero
-dentro del sistema. Pendiente de estudiar en detalle antes de implementar.
+Carencias que en la última edición hubo que suplir a mano, fuera de la aplicación, con hojas de
+cálculo y mensajería, más alguna regla nueva que el evento pidió a gritos. El objetivo es que el
+año que viene el control esté entero dentro del sistema. Pendiente de estudiar en detalle antes
+de implementar.
 
 El contexto completo —qué se decidió, por qué, y con qué se tropezó— está en
 [docs/DECISIONES.md](docs/DECISIONES.md), y el formato de cada actividad en
@@ -50,6 +51,24 @@ El contexto completo —qué se decidió, por qué, y con qué se tropezó— es
   *Resultados en vivo* (ver más abajo): primero que se puedan **meter y consultar**, y ya
   después que se publiquen en tiempo real. El marcador debe ser configurable por actividad,
   porque cada una cuenta de una forma.
+
+- **Penalización por incomparecencia.** *(Idea sin cerrar: falta decidir el criterio.)* Una pareja
+  que no se presenta no solo pierde su partido: deja tirado al rival, bloquea una pista que estaba
+  contada y descuadra la clasificación del grupo. Hoy no tiene ninguna consecuencia, así que sale
+  gratis apuntarse y no aparecer. Ideas sobre la mesa, a elegir o combinar:
+  - **Recargo en la siguiente edición** (del orden de +2 € por actividad) para quien no se presentó
+    sin avisar.
+  - **No poder inscribirse** en la edición siguiente, o poder solo en lista de espera, después de
+    N incomparecencias.
+  - Distinguir siempre entre **avisar con antelación** (que libera la plaza y no debería penalizar)
+    y **no presentarse sin decir nada**, que es lo que hace daño.
+
+  Implica marcar la incomparecencia al registrar el resultado del partido, guardarla asociada a la
+  persona (no a la pareja, para que no arrastre al compañero que sí fue) y que el cálculo del precio
+  la consulte al abrir el plazo. Encaja con el modelo multi-edición de *Ranking / palmarés histórico*
+  y depende de **Introducción de resultados**: sin resultados no hay forma de saber quién faltó.
+  Antes de aplicarla, acordarla con el club y **anunciarla en las bases** de la edición: una sanción
+  que no se avisó de antemano no se puede cobrar.
 
 ## Próximo (alto impacto / esfuerzo bajo-medio)
 
