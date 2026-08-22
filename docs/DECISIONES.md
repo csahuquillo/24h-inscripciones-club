@@ -194,8 +194,22 @@ edición, reconstruido a partir del cuadro que publicó su responsable:
 
 **El problema.** 8 no se reparte a partes iguales entre 3 grupos. Los dos primeros de cada grupo son
 6, así que faltan 2. La solución aplicada fue **repescar a los dos mejores terceros**, comparándolos
-entre grupos. Se ve en el reparto del cuadro publicado: **3 parejas de un grupo, 3 de otro y 2 del
+entre grupos. Se ve en el reparto del cuadro publicado: **3 unidades de un grupo, 3 de otro y 2 del
 tercero**, que es exactamente lo que sale de "2 fijos por grupo + 2 repescados".
+
+**Cómo se verificó.** Uno de los tres grupos tenía su liguilla completa en el chat (los 10 partidos
+del round robin de 5). Al calcular su tabla y contrastarla con el cuadro apareció una anomalía muy
+informativa: **el primero de ese grupo no estaba en cuartos, y sí el tercero**. La explicación
+estaba en el mismo chat una hora antes: la pareja clasificada avisó de que **no iba a estar
+disponible** para la fase final, y el responsable contestó *"lo acabo de ver, modifico, gracias por
+avisar"*, rehízo el cuadro y borró la versión anterior. De ahí sale la regla que faltaba:
+
+> **Si una unidad clasificada renuncia a la fase final, entra la siguiente de su grupo**, y el
+> cuadro se regenera. No se deja el hueco ni se repesca de otro grupo.
+
+Reconstruir la tabla de un solo grupo bastó para deducir el criterio completo, porque la excepción
+delató la regla. Merece la pena guardar los resultados aunque la fase de grupos ya haya terminado:
+son la única forma de auditar un cuadro que llega hecho.
 
 **La programación de la ronda.** Los 4 cuartos se colocaron en **dos franjas de media hora sobre dos
 pistas** (dos partidos simultáneos a una hora, dos a la siguiente): toda la ronda se despacha en una
@@ -208,25 +222,47 @@ Es decir, no se aplicó la regla habitual de separar en la primera ronda a quien
 cruzado en la fase de grupos. Puede ser deliberado o consecuencia de la repesca, pero **hay que
 decidirlo explícitamente**, porque cambia el emparejamiento.
 
-### Lo que hay que dejar cerrado antes de automatizar esto
+### La técnica de publicación: publicar, escuchar, corregir
 
-El cuadro se puede reproducir, pero **los criterios exactos no están escritos en ninguna parte** y
-se resolvieron sobre la marcha. Antes de la próxima edición hay que acordarlos con el responsable de
-cada actividad y **meterlos en las bases**:
+El responsable no publicó el cuadro y se olvidó. La secuencia real fue:
 
-1. **Cuántos pasan** a la fase final y, si no es múltiplo del número de grupos, **cuántos se repescan**.
-2. **Orden dentro del grupo**: qué se mira primero y en qué orden se aplican los desempates.
-3. **Comparación entre grupos** para la repesca: los terceros de grupos distintos han jugado contra
-   rivales distintos, así que hace falta una regla explícita (partidas ganadas, luego diferencia de
-   tantos, luego tantos a favor…). Ojo si los grupos **no tienen el mismo número de unidades**: ahí
-   comparar totales absolutos es injusto y hay que normalizar por partidos jugados.
-4. **Siembra del cuadro**: qué puesto se enfrenta a qué puesto, y **si se evita o no** que coincidan
-   en la primera ronda dos unidades del mismo grupo.
-5. **Qué hacer con las incomparecencias** a efectos de clasificación (ver la penalización pendiente
-   en el [roadmap](../ROADMAP.md)).
+1. Monta el cuadro con los clasificados por criterio deportivo y lo **publica como imagen**.
+2. Los afectados lo revisan y avisan de lo que no cuadra — en este caso, una pareja que no podía
+   jugar la fase final.
+3. **Corrige, borra la publicación anterior** y publica la versión buena, ya en texto plano.
 
-Con esos cinco puntos fijados, generar el cuadro es determinista y no hace falta que lo monte a mano
-el responsable de la actividad, que es justo lo que se quiere evitar.
+Los dos aciertos que conviene copiar: **borrar la versión antigua** en vez de dejar dos cuadros
+circulando (el mismo principio de fuente única de verdad de más arriba), y publicar la versión
+definitiva **en texto**, que se puede citar, buscar y leer desde el móvil, en lugar de una foto.
+
+El fallo de fondo es que la disponibilidad se comprueba **después** de montar el cuadro. Invirtiendo
+el orden —confirmar quién sigue en pie antes de sortear— el cuadro nace bien a la primera.
+
+### Lo que hay que dejar definido para automatizar esto
+
+Los criterios se dedujeron del cuadro publicado, pero **no están escritos en ninguna parte** y se
+resolvieron sobre la marcha. Como no dependen de nadie más, lo sensato es **fijarlos nosotros** y
+meterlos en las bases de la próxima edición. Propuesta, coherente con lo que de hecho se hizo:
+
+1. **Cuántos pasan.** A la fase final pasan `2 × nº de grupos` unidades más las mejores terceras
+   necesarias hasta completar la potencia de 2 más cercana. Con 3 grupos: 6 + 2 = 8.
+2. **Orden dentro del grupo.** Partidas ganadas → enfrentamiento directo si el empate es entre dos →
+   diferencia de tantos si es entre tres o más → tantos a favor.
+3. **Comparación entre grupos** para la repesca: misma escala, pero **normalizada por partidos
+   jugados** si los grupos no tienen el mismo tamaño, porque comparar totales absolutos entre un
+   grupo de 5 y otro de 4 es injusto. Ojo también con las incomparecencias: un `1-0` mueve poco la
+   diferencia de tantos y puede distorsionar la comparación frente a quien ganó jugando.
+4. **Siembra**: 1º contra el peor clasificado disponible, y **evitar en la primera ronda** el cruce
+   entre unidades del mismo grupo siempre que la siembra lo permita. En la última edición no se
+   evitó y dos parejas del mismo grupo se vieron en cuartos; conviene decidirlo, no dejarlo al azar.
+5. **Renuncias**: si una clasificada no puede jugar la fase final, **entra la siguiente de su
+   grupo** y se regenera el cuadro. Exige un estado explícito de *disponible para la fase final*, y
+   preguntarlo **antes** de generar el cuadro, no después.
+6. **Incomparecencias** en la fase de grupos: cómo puntúan y si además penalizan (ver la penalización
+   pendiente en el [roadmap](../ROADMAP.md)).
+
+Con esos seis puntos fijados, generar el cuadro es determinista: una función que recibe las tablas de
+los grupos y la lista de quién sigue disponible, y devuelve el cuadro sembrado y la parrilla de horas.
 
 ## Notas de operación
 
