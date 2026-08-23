@@ -359,6 +359,36 @@ Con esos puntos fijados, generar el cuadro es determinista: una función que rec
 grupos y la lista de quién sigue disponible, y devuelve el ranking, el cuadro sembrado y la parrilla de
 horas. El libro de pádel es, de hecho, esa función escrita a mano en celdas.
 
+## Recopilar el palmarés y el correo de reconocimiento
+
+Al terminar el evento se envió a **todos los inscritos** un correo con los **campeones y
+subcampeones de cada disciplina**. Funcionó muy bien como cierre (da bombo a los ganadores y
+recupera a la gente que se fue al quedar eliminada), pero recopilarlo costó más de lo que debería.
+Lecciones:
+
+- **Los resultados llegan dispersos y en lenguaje natural.** Cada responsable los cantó por su
+  canal (unos en el grupo grande, otros en el suyo de disciplina, algunos solo de palabra), y con
+  apodos, motes y nombres a medias. Reconstruir las 17 categorías fue un rastreo manual por varios
+  chats. Con *Introducción de resultados* en el sistema (ver [roadmap](../ROADMAP.md)) esto sería
+  automático: el palmarés se genera solo de la tabla de resultados.
+- **Cuidado al casar apodos con la lista oficial.** Un mismo mensaje de "campeones de tal" se
+  atribuyó primero a la disciplina equivocada, porque quien lo publicó coordinaba varias a la vez.
+  Hay que confirmar **qué disciplina** y **qué nombres completos** contra el padrón antes de darlo
+  por bueno, no fiarse del contexto de quién lo dijo.
+- **Nombrar a los equipos por su nombre oficial, nunca por una familia o un apodo.** En el correo,
+  a un equipo campeón (de más de una decena de jugadores) se le llamó por el apellido de la familia
+  que más suena en él. Es **menospreciar al resto del equipo**: reduce a todos los demás al apellido
+  de unos pocos. En una comunicación oficial, el nombre es el del equipo y punto. El apodo cariñoso
+  vale en una charla de grupo, no en el correo que reciben más de cien personas.
+- **Un error en un correo masivo casi nunca se arregla con otro correo masivo.** Reenviar una
+  corrección a los 130 amplifica el desliz en vez de taparlo, y encima hace que todos relean justo
+  la línea del fallo. Si algo hay que corregir, se hace **en positivo** (sumando reconocimiento, no
+  pidiendo perdón) y por el canal más acotado posible: al afectado directo, o en el grupo. A veces
+  la mejor opción es asumir la colleja y no tocar nada.
+- **Antes de enviar a los 130, un repaso de nombres.** Mandar primero una copia de prueba a la
+  organización y leerla entera evita justo estas cosas (apodos, "(no se presentó)" señalando a
+  alguien, un nombre a medias). El coste de revisar es cero comparado con el de rectificar.
+
 ## Notas de operación
 
 - **Los audios y las fotos de papel son parte del canal.** Buena parte de las instrucciones de los
