@@ -206,10 +206,22 @@ diferencia +5**. Ordenar solo por victorias y diferencia da un orden distinto de
 puesto en el grupo manda sobre el rendimiento absoluto, que es lo justo cuando los grupos no se han
 enfrentado entre sí.
 
-Con 3 grupos entran los 3 primeros de cada uno, o sea 9 candidatos para 8 plazas de cuartos. En la
-edición real el ajuste lo resolvió una **baja**: una pareja clasificada avisó de que no podía jugar
-la fase final, se marcó como BAJA en el ranking y se renumeró del 1 al 8 saltándola. Sin esa baja
-habría habido que descartar al noveno.
+**Cuántos pasan** depende de la estructura de grupos, y la regla es la misma para todos: se cogen las
+`potencia de 2` primeras del ranking global. En la edición real:
+- **−4**: 3 grupos de 5 → clasifican los 2 primeros de cada grupo y los **2 mejores terceros** (8).
+- **+4**: 5 grupos de 4 → clasifican los **5 primeros y los 3 mejores segundos** (8).
+
+Las dos reglas son el mismo ranking global (puesto en grupo → ganados → diferencia, top 8); lo que
+cambia es lo que ese orden produce según cómo estén repartidos los grupos.
+
+**Un matiz de la comparación entre grupos que corrige lo que yo había supuesto**: para comparar
+unidades de grupos distintos **no se usa la diferencia total sino la MEDIA de puntuación** (lo dicen
+las reglas escritas: *"entre grupos: media de puntuación"*). Es exactamente la normalización que hace
+falta cuando los grupos tienen distinto número de partidos, y ya estaba resuelta así en origen.
+
+Con 3 grupos de 5, los 3 primeros de cada uno son 9 candidatos para 8 plazas. En la edición real el
+ajuste lo resolvió además una **baja**: una pareja clasificada avisó de que no podía jugar la fase
+final, se marcó como BAJA y el resto subió.
 
 > **Si una unidad clasificada renuncia**, se marca como baja, **se salta en la numeración** y el
 > resto sube. No se deja hueco ni se repesca de otro grupo.
@@ -219,20 +231,54 @@ posiciones de cada enfrentamiento **suman siempre 9**. Como es siembra pura por 
 evita** que coincidan dos unidades del mismo grupo: pasó, se cruzaron el 2º y el 7º, ambos del mismo
 grupo.
 
-**Las incomparecencias se anotan 6-0.** Se dedujo comparando la tabla del responsable con la
-recalculada desde los resultados del chat: había una desviación constante de 5 tantos por
-incomparecencia, que cuadra exactamente si el partido no jugado se anota `6-0` y no `1-0`. **Esto no
-está unificado entre actividades**: en otra disciplina de la misma edición el responsable anotó las
-incomparecencias `1-0`. Como la diferencia de tantos es criterio de desempate, dos actividades con
-convenios distintos pueden ordenar de forma distinta el mismo rendimiento. **Hay que fijar un único
-convenio para todo el evento.**
+**Corrección sobre las incomparecencias.** En una versión anterior de este documento deduje, de la
+aritmética de un grupo, que el no presentado se anotaba `6-0`. **Las reglas oficiales dicen otra
+cosa**: *"no presentado: gana la pareja presentada, resultado la media de las partidas realizadas en
+el grupo"*. Es decir, a la que se presenta se le asigna como marcador **su propia media en el grupo**,
+no un `6-0` fijo. El `6-0` cuadraba por casualidad en aquel grupo concreto. La regla de la media es
+mejor porque no infla ni desinfla artificialmente la diferencia de quien se libra de jugar. **Aun
+así, no está unificado entre actividades**: en el pádel se usa la media, pero en otra disciplina de la
+misma edición el responsable anotó las incomparecencias `1-0`. Como el desempate mira la puntuación,
+conviene un **único convenio para todo el evento** — y el de pádel (media del grupo) es el más justo.
 
-**Cómo se auditó todo esto.** Uno de los grupos tenía su liguilla completa en el chat (los 10
-partidos del round robin de 5). Recalcular esa tabla y contrastarla con el cuadro publicado permitió
-detectar la baja, deducir el marcador de las incomparecencias y descartar la hipótesis equivocada de
-"dos por grupo más los mejores terceros", que encajaba con el reparto 3/3/2 pero no con el orden
-real. **Merece la pena conservar los resultados aunque la fase de grupos haya terminado**: son la
-única forma de auditar un cuadro que llega hecho.
+**Cómo se auditó todo esto.** Primero se reconstruyó a mano la tabla de un grupo cuya liguilla estaba
+completa en el chat, lo que ya delató la baja y el criterio de orden. Después apareció el **libro de
+cálculo completo del responsable**, que confirmó el método y aportó las reglas escritas (ver la
+sección siguiente). La lección operativa se mantiene: **conservar los resultados aunque la fase de
+grupos haya terminado** es la única forma de auditar un cuadro que llega hecho.
+
+### El libro de cálculo del responsable, como plantilla reutilizable
+
+El responsable de pádel entregó un único Excel que **codifica el método entero** y sirve tal cual de
+plantilla para el año que viene. Merece la pena conservarlo porque resuelve, ya escritas, las
+decisiones que en otras actividades se tomaron sobre la marcha. Lo que contiene:
+
+- **Hoja de REGLAS** con todo el reglamento deportivo: duración (liga y cuartos 30 min + 5 de
+  calentamiento; **semifinales 45 min; final al mejor de 2 sets**), **sin empates** (se decide por
+  *punto de oro*), marcador continuo, cómo se comunica el resultado en el grupo de difusión, los
+  criterios de clasificación dentro y entre grupos, la regla del no presentado, y el margen de
+  **5 minutos** antes de dar un partido por perdido. Un reglamento así, cerrado y publicado, es lo
+  que evita las discusiones que sí hubo en las actividades sin reglas escritas.
+- **Una hoja por categoría** (infantil, −4, +4) con las parejas, su grupo, su nº de código
+  (`A1`, `C4`, `INF 3`…) y la tabla de clasificación.
+- **Rejilla horaria de la fase final entera**, con cada ronda en una franja de 30 min sobre 2 pistas
+  y **codificada por posiciones, no por nombres**: los cuartos son `1-8, 2-7, 3-6, 4-5`, las
+  semifinales cruzan a los ganadores por mitades del cuadro, y las finales cierran el día
+  (final −4 a las 19:00, final +4 a las 20:30). Al estar en códigos, la rejilla se rellena sola en
+  cuanto se conocen los clasificados: es literalmente el algoritmo de la fase final escrito en celdas.
+- **Siembra por nivel en el sorteo de grupos.** En +4 las parejas declararon un **nivel** (5, 4, 3) y
+  se repartieron para que cada grupo quedara equilibrado, con cabezas de serie. No fue un sorteo
+  puramente aleatorio: esto matiza el punto *"emparejamientos por sorteo"* del [roadmap](../ROADMAP.md)
+  — el sorteo debe ser **aleatorio pero sembrado por nivel**, no uniforme.
+- **Horario de la fase de grupos** intercalando las tres categorías (infantil, −4, +4) en dos pistas
+  a lo largo de toda la noche, que es la materialización de la regla *"mezclar modalidades en el
+  tiempo"*.
+
+Comparado con lo que ya teníamos en la base de datos, **el cuadrante de la fase de grupos coincide**
+(nuestra importación se hizo a partir de estos mismos cuadros). Lo que la base de datos **no** tenía y
+este libro sí es la **fase final** (cuartos, semis y finales) y el **reglamento**. Para la próxima
+edición, este Excel es el punto de partida a convertir en lógica del sistema; ver los criterios
+enumerados más abajo.
 
 **La programación de la ronda.** Los 4 cuartos se colocaron en **dos franjas de media hora sobre dos
 pistas** (dos partidos simultáneos a una hora, dos a la siguiente): toda la ronda se despacha en una
@@ -241,9 +287,11 @@ conservar: **cada ronda ocupa `nº de partidos / nº de pistas` franjas**, y con
 atrás desde la hora a la que se quiere entregar los trofeos.
 
 **Un detalle nada obvio:** en ese cuadro **dos parejas del mismo grupo se enfrentaron en cuartos**.
-Es decir, no se aplicó la regla habitual de separar en la primera ronda a quienes ya se habían
-cruzado en la fase de grupos. Puede ser deliberado o consecuencia de la repesca, pero **hay que
-decidirlo explícitamente**, porque cambia el emparejamiento.
+No es efecto de ninguna repesca —el libro del responsable confirma que es **siembra pura** `1-8, 2-7,
+3-6, 4-5`—: al sembrar solo por posición del ranking, nada impide que dos del mismo grupo caigan en la
+misma llave. Si se quiere evitar (para que no se repita en cuartos un partido ya jugado en la
+liguilla) hay que **añadir esa restricción a la siembra explícitamente**; en la última edición no se
+hizo.
 
 ### Fases finales pequeñas: adaptar el formato al número que queda
 
@@ -282,33 +330,34 @@ el orden —confirmar quién sigue en pie antes de sortear— el cuadro nace bie
 
 ### Lo que hay que dejar definido para automatizar esto
 
-Los criterios se dedujeron del cuadro publicado, pero **no están escritos en ninguna parte** y se
-resolvieron sobre la marcha. Como no dependen de nadie más, lo sensato es **fijarlos nosotros** y
-meterlos en las bases de la próxima edición. Propuesta, coherente con lo que de hecho se hizo:
+Para el pádel, la mayoría **ya están definidos** en la hoja de REGLAS del responsable; lo que falta es
+adoptar ese mismo esquema para las demás actividades y traducirlo a lógica del sistema. Los criterios,
+tal como quedaron (los que vienen del reglamento de pádel se marcan con ✔):
 
-1. **Ranking global**, tal como se hizo: puesto en el grupo → partidos ganados → diferencia de
-   tantos. Conviene añadir un cuarto criterio (tantos a favor) para los empates que queden.
-2. **Cuántos pasan.** Entran los `K` primeros de cada grupo hasta cubrir la potencia de 2 más
-   cercana. Con 3 grupos y cuartos de final: los 3 primeros de cada uno, 9 candidatos para 8 plazas,
-   y **cae el último del ranking**. Es el punto más flojo del método actual y conviene decidirlo de
-   antemano en vez de dejar que lo resuelva una baja, como pasó esta vez.
-3. **Convenio único de incomparecencia para todo el evento.** En la última edición convivieron `6-0`
-   y `1-0` según la actividad. Como la diferencia de tantos desempata, hay que elegir uno. Mejor
-   aún: que la incomparecencia **cuente como victoria pero no sume diferencia**, para que no premie
-   al que se libra de jugar frente al que gana en la pista.
-4. **Grupos de distinto tamaño**: si los hay, la diferencia de tantos debe **normalizarse por
-   partidos jugados** antes de comparar unidades de grupos distintos; si no, el grupo más grande
-   sale beneficiado.
+1. ✔ **Ranking global**: puesto en el grupo → partidos ganados → diferencia. Añadir un cuarto criterio
+   (tantos a favor) para los empates que aún queden.
+2. ✔ **Cuántos pasan**: los `potencia de 2` primeros del ranking global. Da "2 por grupo + mejores
+   terceros" (−4) o "5 primeros + 3 mejores segundos" (+4) según la estructura, sin necesidad de una
+   regla distinta por caso.
+3. ✔ **Comparación entre grupos por MEDIA de puntuación**, no por total. Resuelve de raíz los grupos
+   de distinto tamaño (era mi duda pendiente: la media ya es la normalización correcta).
+4. ✔ **Incomparecencia** = victoria de la presentada con marcador igual a **su media en el grupo**, y
+   **5 minutos** de cortesía antes de darla por perdida. **Falta unificarlo con el resto de
+   actividades** (en otra se usó `1-0`); el convenio de pádel es el bueno para todo el evento.
 5. **Siembra** `1-N, 2-(N-1)…`, y decidir **si se evita o no** que se crucen en la primera ronda dos
-   unidades del mismo grupo. En la última edición no se evitó; conviene que sea una decisión, no un
-   efecto colateral.
+   unidades del mismo grupo. En pádel no se evitó; conviene que sea una decisión, no un efecto
+   colateral.
 6. **Renuncias**: se marcan como baja, se saltan en la numeración y el resto sube. Exige un estado
    explícito de *disponible para la fase final*, preguntado **antes** de generar el cuadro.
-7. **Incomparecencias** en la fase de grupos: si además penalizan de cara al año siguiente (ver el
+7. ✔ **Sorteo de grupos sembrado por nivel**: las parejas declaran nivel y se reparten para equilibrar
+   los grupos. El sorteo del [roadmap](../ROADMAP.md) debe ser aleatorio **dentro de cada nivel**, no
+   uniforme.
+8. **Incomparecencias** en la fase de grupos: si además penalizan de cara al año siguiente (ver el
    [roadmap](../ROADMAP.md)).
 
-Con esos siete puntos fijados, generar el cuadro es determinista: una función que recibe las tablas de
-los grupos y la lista de quién sigue disponible, y devuelve el cuadro sembrado y la parrilla de horas.
+Con esos puntos fijados, generar el cuadro es determinista: una función que recibe las tablas de los
+grupos y la lista de quién sigue disponible, y devuelve el ranking, el cuadro sembrado y la parrilla de
+horas. El libro de pádel es, de hecho, esa función escrita a mano en celdas.
 
 ## Notas de operación
 

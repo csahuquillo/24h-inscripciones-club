@@ -36,7 +36,10 @@ El contexto completo —qué se decidió, por qué, y con qué se tropezó— es
   reproducible** (misma semilla → mismo sorteo, para poder repetirlo y justificarlo), con
   restricciones configurables: separar a los inscritos que vienen juntos, respetar cabezas de
   serie y equilibrar los grupos por número de participantes. Y un botón de "volver a sortear"
-  con vista previa antes de confirmar.
+  con vista previa antes de confirmar. **Ojo: el sorteo del pádel no es uniforme, es sembrado por
+  nivel** — las parejas declaran un nivel y se reparten para que los grupos queden equilibrados
+  (ver [docs/DECISIONES.md](docs/DECISIONES.md)). El sorteo debe aleatorizar **dentro de cada
+  nivel/bombo**, no sobre el total.
 - **Horarios con control de las horas de juego.** El calendario debe conocer la duración real
   de cada partido y la franja que ocupa, no solo su orden. Requisitos detectados:
   separación mínima configurable entre dos partidos del mismo jugador (para descansar y para

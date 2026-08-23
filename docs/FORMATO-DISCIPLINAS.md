@@ -80,12 +80,19 @@ cada disciplina y son el motivo de la mayoría de rehacer-el-cuadrante de esta e
 - **Tenis individual**: la liguilla era de 4 jugadores. Con la **retirada de uno**, se resolvió
   jugando **una final directa entre los dos primeros**, en vez de montar semifinales con tres.
 - **Tenis infantil**: solo dos participantes, así que **final directa** entre ellos.
-- **Pádel −4 (adultos)**: con 3 grupos de 5 parejas, pasan **8 a cuartos de final**: los **2 primeros
-  de cada grupo más los 2 mejores terceros**. Si una clasificada **renuncia**, entra la siguiente de
-  su grupo (pasó: renunció la primera de un grupo y entró la tercera). Los cuartos se programaron en
-  **dos franjas de 30 min sobre dos pistas** (dos partidos simultáneos por franja), de modo que la
-  ronda entera se resuelve en una hora y deja sitio a semifinales y final el mismo día. En el cuadro
-  que se jugó **sí llegaron a cruzarse dos parejas del mismo grupo** en cuartos.
+- **Pádel −4 (adultos)**: 3 grupos de 5 parejas; pasan **8 a cuartos**: los **2 primeros de cada grupo
+  más los 2 mejores terceros**. Si una clasificada **renuncia**, entra la siguiente de su grupo (pasó).
+- **Pádel +4 (adultos)**: 5 grupos de 4 parejas; pasan **8 a cuartos**: los **5 primeros de grupo más
+  los 3 mejores segundos**. Grupos sembrados por **nivel** declarado (5/4/3) para equilibrarlos.
+- **Reglamento común del pádel** (hoja de REGLAS del responsable, sirve de plantilla): liga y cuartos
+  **30 min + 5 de calentamiento**, **semifinales 45 min**, **final al mejor de 2 sets**; **sin
+  empates**, se decide por **punto de oro**; marcador continuo; el ganador comunica el resultado en el
+  grupo. Clasificación **dentro del grupo**: partidos ganados → empate a dos, partido directo → empate
+  a tres, diferencia total. **Entre grupos**: media de puntuación. **No presentado**: gana la
+  presentada con marcador igual a su media en el grupo; **5 minutos** de cortesía antes de darlo por
+  perdido. La **fase final** completa (cuartos `1-8/2-7/3-6/4-5`, semis por mitades del cuadro, finales
+  −4 a las 19:00 y +4 a las 20:30) va en franjas de 30 min sobre 2 pistas. En cuartos **sí pueden
+  cruzarse dos del mismo grupo**, porque la siembra es pura por ranking.
 - **Pádel infantil**: liguilla única de 7 parejas; pasan las **4 primeras** y se cruzan **1º-4º y
   2º-3º**. Criterios: partidas ganadas; empate entre dos, resultado directo; empate entre tres o más,
   mejor diferencia de puntos.
