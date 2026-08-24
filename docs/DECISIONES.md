@@ -389,6 +389,32 @@ Lecciones:
   organización y leerla entera evita justo estas cosas (apodos, "(no se presentó)" señalando a
   alguien, un nombre a medias). El coste de revisar es cero comparado con el de rectificar.
 
+## La web después del evento (ciclo de vida de la edición)
+
+Una edición no acaba cuando se juega el último partido: la web pasa por varios estados y conviene
+tenerlos previstos.
+
+- **Home durante el evento → home de "terminado".** Al cerrar, la portada deja de anunciar la
+  preinscripción y pasa a un mensaje de agradecimiento + el aviso de la **entrega de trofeos** (un
+  banner con la fecha), con enlace al área privada. Se retiran las secciones ya caducadas (p. ej. la
+  rifa "durante las 24 Horas"). Es un cambio de contenido en `home.php`, nada estructural.
+- **Resultados en el área privada.** "Mi cuenta" muestra, al terminar, el **palmarés** de todas las
+  disciplinas (tabla `palmares`) y, para quien lo tenga disponible, su **posición final** (hoy solo
+  pádel, tabla `clasif_padel`, ver más arriba). Como los datos viven en la BD, **persisten entre
+  ediciones**: quien repita al año siguiente puede consultar cómo quedó. El palmarés **no se publica
+  en abierto** porque incluye datos de menores; vive tras el login.
+- **Página estática de temporada baja.** El servidor del evento se apaga gran parte del año para no
+  pagarlo en vano. Mientras está apagado, el dominio debe seguir mostrando algo: una **página
+  estática** ("la edición X ha terminado, vuelve en agosto") en un hosting que no dependa del
+  servidor —lo natural es **GitHub Pages** con el dominio redirigido—. Esa página es **pública**, así
+  que **no lleva palmarés ni nombres**. Conviene tenerla montada de antemano y activarla justo al
+  apagar el servidor. Debe reutilizar el CSS y el logo de la web real para que no desentone (un
+  único fichero autónomo, con el CSS y el logo embebidos, se despliega sin depender de `/assets`).
+
+El orden natural al cerrar: (1) cargar resultados y palmarés en la BD, (2) cambiar la home a
+"terminado" + trofeos, (3) tras la entrega de trofeos, apagar el servidor y **conmutar el dominio a
+la página estática**.
+
 ## Notas de operación
 
 - **Los audios y las fotos de papel son parte del canal.** Buena parte de las instrucciones de los
