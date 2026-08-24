@@ -32,19 +32,15 @@ function ctrl_home(): void {
         . '<a href="mailto:' . $contacto . '">' . $contacto . '</a>.</p></section>';
     $c = <<<HTML
 $membrete
-$banner
 <section class="hero">
-  <p class="kicker">🏆 Jornada de puertas abiertas · un día entero de deporte y juego</p>
+  <p class="kicker">🏆 Edición 2026 · ¡Gracias por participar!</p>
   <h1>$ev · $clubn</h1>
-  <p>Una <strong>jornada de puertas abiertas</strong> para aficionados al deporte y a pasarlo bien:
-     deportes individuales, juegos sociales y fútbol de menores.</p>
-  <div class="aviso" style="font-size:1.05rem">⏰ <strong>La preinscripción ya está cerrada</strong> — el plazo ha finalizado. Ya no se admiten nuevas inscripciones.</div>
-  <p>Si <strong>ya te inscribiste y pagaste</strong>, entra en tu área privada para consultar tus
-     <strong>inscripciones, los emparejamientos y los horarios</strong>.</p>
+  <div class="banner abierto" style="font-size:1.05rem">🏆 <strong>El torneo ha terminado.</strong> La <strong>entrega de trofeos</strong> será el <strong>sábado 29 de agosto</strong> en el polideportivo. ¡Os esperamos para celebrarlo!</div>
+  <p>Gracias a todas y a todos por unas <strong>24 Horas inolvidables</strong>: participantes, familias, voluntarios y responsables de cada disciplina.</p>
+  <p>Si participaste, entra en tu área privada para ver el <strong>palmarés</strong> de todas las disciplinas y <strong>cómo has quedado</strong>.</p>
   <p><a class="cta-btn" href="/login">Acceder a mi cuenta →</a></p>
-  <p class="note">¿Tienes alguna duda? Escríbenos al club: <a href="mailto:$contacto">$contacto</a>.</p>
+  <p class="note">¿Alguna duda? Escríbenos al club: <a href="mailto:$contacto">$contacto</a>.</p>
 </section>
-$rifa
 $lona
 HTML;
     render('Inicio', $c, $u);
