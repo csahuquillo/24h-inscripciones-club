@@ -70,6 +70,9 @@ function ctrl_account(): void {
     $grHtml = grupos_de_cuenta((int)$u['id']);
     // Horario de sus partidos (si el responsable ha publicado el cuadro)
     $partidosHtml = partidos_de_cuenta((int)$u['id']);
+    // Resultados de la edición (palmarés + posición propia en pádel), si ya hay palmarés cargado
+    $miPadelHtml = mi_padel_html((int)$u['id']);
+    $palmaresHtml = palmares_html();
     // Horarios próximos
     $hoHtml = horarios_html();
 
@@ -86,6 +89,8 @@ function ctrl_account(): void {
        . ($partHtml || $eqHtml ? '' : '<p>No hay inscripciones asociadas a tu cuenta.</p>')
        . ($grHtml ? "<h2>Tus emparejamientos (grupos)</h2><p class=\"muted\">Estos son los grupos que te han tocado. Cada grupo organiza sus partidas como quiera dentro del horario de la disciplina. Usa el botón <strong>💬 WhatsApp</strong> de cada pareja para poneros de acuerdo.</p>$grHtml" : '')
        . ($partidosHtml ? "<h2>Tus partidos (horario)</h2><p class=\"muted\">Horario provisional publicado por la organización (hora, pista y rival). Puede haber ajustes por lluvia.</p>$partidosHtml" : '')
+       . ($miPadelHtml ? "<h2>Cómo quedaste · Pádel 2026</h2>$miPadelHtml" : '')
+       . ($palmaresHtml ? "<h2>🏆 Palmarés 24 Horas 2026</h2><p class=\"muted\">Campeones y campeonas de todas las disciplinas de la edición. ¡Enhorabuena a todos!</p>$palmaresHtml" : '')
        . ($listasHtml ? "<h2>Todas las parejas de tus deportes</h2>$listasIntro$listasHtml" : '')
        . ($hoHtml ? "<h2>Horarios</h2>$hoHtml" : '');
     render('Mi cuenta', $c, $u, 'noindex, nofollow');
@@ -193,6 +198,62 @@ function partidos_de_cuenta(int $cuentaId): string {
     if ($rows === '') return '';
     return '<table class="grid"><thead><tr><th>Hora</th><th>Pista</th><th>Rival</th><th>Categoría</th></tr></thead><tbody>'
          . $rows . '</tbody></table>';
+}
+
+/**
+ * Palmarés de la edición: campeones y subcampeones de cada disciplina (tabla `palmares`).
+ * Se muestra a cualquier inscrito con sesión iniciada. Vacío si aún no se ha cargado.
+ */
+function palmares_html(): string {
+    $pdo = db();
+    try { $rows = $pdo->query('SELECT disciplina, campeon, subcampeon, mencion FROM palmares ORDER BY orden')->fetchAll(); }
+    catch (Throwable $ex) { return ''; }   // la tabla puede no existir todavía
+    if (!$rows) return '';
+    $body = '';
+    foreach ($rows as $r) {
+        $sub = $r['subcampeon'] !== '' ? '<br><span class="muted">🥈 ' . e($r['subcampeon']) . '</span>' : '';
+        $men = $r['mencion'] !== ''   ? '<br><span class="muted">⭐ Mención especial: ' . e($r['mencion']) . '</span>' : '';
+        $body .= '<tr><td><strong>' . e($r['disciplina']) . '</strong></td><td>🥇 ' . e($r['campeon']) . $sub . $men . '</td></tr>';
+    }
+    return '<table class="grid"><thead><tr><th>Disciplina</th><th>Campeón/a · Subcampeón/a</th></tr></thead><tbody>'
+         . $body . '</tbody></table>';
+}
+
+/**
+ * Posición final del usuario en pádel (tabla `clasif_padel`, cargada del cuadro del responsable).
+ * Es la única disciplina de la que se tiene la clasificación completa; para el resto solo hay
+ * palmarés. Se localiza por coincidencia del nombre del inscrito dentro del texto de la pareja.
+ */
+function mi_padel_html(int $cuentaId): string {
+    $pdo = db();
+    $mn = $pdo->prepare('SELECT DISTINCT nombre_completo FROM participante WHERE cuenta_id = ?');
+    $mn->execute([$cuentaId]);
+    $mine = [];
+    foreach ($mn->fetchAll() as $m) { $c = canon_nombre($m['nombre_completo']); if (mb_strlen($c) >= 6) $mine[] = $c; }
+    if (!$mine) return '';
+    try { $rows = $pdo->query('SELECT categoria, pareja, pareja_norm, grupo, pos_grupo, ganados, dif, seed, fase, total_parejas, campeon_cat FROM clasif_padel')->fetchAll(); }
+    catch (Throwable $ex) { return ''; }
+    if (!$rows) return '';
+    $labels = ['−4' => 'Pádel −4 años', '+4' => 'Pádel +4 años', 'infantil' => 'Pádel infantil'];
+    $medalla = ['Campeón' => '🥇 ', 'Subcampeón' => '🥈 ', 'Semifinalista' => '🎾 '];
+    $out = ''; $vistas = [];
+    foreach ($rows as $r) {
+        $hit = false;
+        foreach ($mine as $nm) { if (mb_strpos($r['pareja_norm'], $nm) !== false) { $hit = true; break; } }
+        if (!$hit || isset($vistas[$r['categoria']])) continue;
+        $vistas[$r['categoria']] = true;
+        $cat = $labels[$r['categoria']] ?? ('Pádel ' . $r['categoria']);
+        $med = $medalla[$r['fase']] ?? '';
+        $gen = $r['seed'] !== '' ? '<p>Clasificación general: <strong>' . e($r['seed']) . '</strong> de '
+                . (int)$r['total_parejas'] . ' parejas.</p>' : '';
+        $out .= '<article class="panel"><h3>' . e($cat) . ' — ' . $med . e($r['fase']) . '</h3>'
+              . '<p>Pareja: <strong>' . e($r['pareja']) . '</strong></p>'
+              . '<p>Grupo ' . e($r['grupo']) . ': <strong>' . (int)$r['pos_grupo'] . 'º</strong> de tu grupo · '
+              . (int)$r['ganados'] . ' partidos ganados.</p>'
+              . $gen
+              . '<p class="muted">Campeones de la categoría: ' . e($r['campeon_cat']) . '.</p></article>';
+    }
+    return $out;
 }
 
 /** Normaliza un teléfono a formato wa.me (solo dígitos, prefijo país). '' si no válido. */

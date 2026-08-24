@@ -53,7 +53,13 @@ El contexto completo —qué se decidió, por qué, y con qué se tropezó— es
   el cruce de la fase final, que ahora se calculan a mano sobre papel. Es el paso previo a
   *Resultados en vivo* (ver más abajo): primero que se puedan **meter y consultar**, y ya
   después que se publiquen en tiempo real. El marcador debe ser configurable por actividad,
-  porque cada una cuenta de una forma.
+  porque cada una cuenta de una forma. **Base ya preparada** en `migrations/schema.sql`: tabla
+  `resultado` (una fila por `partido`, con marcador de cada lado, `ganador` explícito —para punto de
+  oro y desempates que no se deducen del marcador—, `no_presentado` para la penalización, y quién y
+  cuándo lo registró). El área de usuario ya lee de una tabla `palmares` (campeón/subcampeón por
+  disciplina) y de un volcado auxiliar `clasif_padel`; el sistema de resultados generaría ambas
+  cosas en vez de cargarlas a mano. Falta la UI para que el responsable de cada disciplina meta los
+  resultados y la lógica que, a partir de `resultado`, calcule clasificación, desempates y cruces.
 
 - **Penalización por incomparecencia.** *(Idea sin cerrar: falta decidir el criterio.)* Una pareja
   que no se presenta no solo pierde su partido: deja tirado al rival, bloquea una pista que estaba

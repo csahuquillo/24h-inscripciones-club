@@ -181,6 +181,42 @@ CREATE TABLE IF NOT EXISTS notificacion_dest (
   CONSTRAINT fk_nd_notif FOREIGN KEY (notificacion_id) REFERENCES notificacion(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Palmarés de una edición: campeón/subcampeón por disciplina. Lo muestra el área de usuario
+-- ("Mi cuenta") a los inscritos con sesión. Se carga al terminar el evento.
+CREATE TABLE IF NOT EXISTS palmares (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  edicion       INT NOT NULL DEFAULT 2026,
+  orden         INT NOT NULL,
+  disciplina    VARCHAR(40)  NOT NULL,
+  campeon       VARCHAR(200) NOT NULL,
+  subcampeon    VARCHAR(200) NOT NULL DEFAULT '',
+  mencion       VARCHAR(120) NOT NULL DEFAULT '',
+  KEY idx_palmares_ed (edicion, orden)
+) ENGINE=InnoDB;
+
+-- Resultados de partido (PENDIENTE de usar — roadmap "Introducción de resultados").
+-- Hoy los resultados se recogían por mensajería y las clasificaciones se calculaban a mano.
+-- El objetivo 2027 es que el responsable de cada disciplina los meta desde la web. El marcador
+-- es genérico (juegos/puntos/partidas según la actividad); `ganador` se guarda EXPLÍCITO porque
+-- con punto de oro o desempates no siempre se deduce del marcador; `no_presentado` alimenta la
+-- futura penalización por incomparecencia. De esta tabla saldrían solas las clasificaciones,
+-- los desempates y los cruces de la fase final (hoy en la tabla auxiliar `clasif_padel`, que es
+-- un volcado manual del cuadro del responsable de pádel de 2026 y que este sistema sustituiría).
+CREATE TABLE IF NOT EXISTS resultado (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  partido_id     INT NOT NULL,
+  marcador_p1    INT NULL,
+  marcador_p2    INT NULL,
+  ganador        ENUM('p1','p2') NULL,
+  no_presentado  ENUM('','p1','p2','ambos') NOT NULL DEFAULT '',
+  detalle        VARCHAR(120) NULL,
+  registrado_por INT NULL,
+  registrado_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_resultado_partido (partido_id),
+  CONSTRAINT fk_res_partido FOREIGN KEY (partido_id) REFERENCES partido(id) ON DELETE CASCADE,
+  CONSTRAINT fk_res_cuenta  FOREIGN KEY (registrado_por) REFERENCES cuenta(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 -- Semilla de disciplinas (idempotente)
 INSERT IGNORE INTO disciplina (nombre, tipo, ambito, pide_nivel) VALUES
  ('Tenis','deporte','adulto',0), ('Tenis doble','deporte','adulto',0),
