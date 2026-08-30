@@ -81,6 +81,8 @@ docs/
   FORMATO-DISCIPLINAS.md  formato de cada actividad: grupos, sistema,
                           duración, instalaciones y reglas del cuadrante
   DECISIONES.md           decisiones tomadas, por qué, y con qué se tropezó
+  CIERRE-DE-EDICION.md    apagar el servidor al terminar y dejar la web en
+                          "temporada baja"; y cómo reabrir al año siguiente
 ```
 
 ## Requisitos
@@ -200,6 +202,9 @@ no depender de quién organizó la anterior:
   los criterios de puntuación y fase final.
 - **[docs/DECISIONES.md](docs/DECISIONES.md)** — el porqué de cada decisión y los problemas con los
   que se tropezó, empezando por el manejo de **parejas**, que fue el origen de la mayoría.
+- **[docs/CIERRE-DE-EDICION.md](docs/CIERRE-DE-EDICION.md)** — al terminar la edición: cómo **apagar
+  el servidor** dejando el dominio con una **página estática de temporada baja** (independiente del
+  servidor) y cómo **reabrir** todo al año siguiente.
 
 ## Roadmap
 

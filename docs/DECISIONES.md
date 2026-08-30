@@ -405,15 +405,23 @@ tenerlos previstos.
   en abierto** porque incluye datos de menores; vive tras el login.
 - **Página estática de temporada baja.** El servidor del evento se apaga gran parte del año para no
   pagarlo en vano. Mientras está apagado, el dominio debe seguir mostrando algo: una **página
-  estática** ("la edición X ha terminado, vuelve en agosto") en un hosting que no dependa del
-  servidor —lo natural es **GitHub Pages** con el dominio redirigido—. Esa página es **pública**, así
-  que **no lleva palmarés ni nombres**. Conviene tenerla montada de antemano y activarla justo al
-  apagar el servidor. Debe reutilizar el CSS y el logo de la web real para que no desentone (un
-  único fichero autónomo, con el CSS y el logo embebidos, se despliega sin depender de `/assets`).
+  estática** ("la edición X ha terminado, vuelve en agosto") en un hosting que **no dependa del
+  servidor**. Esa página es **pública**, así que **no lleva palmarés ni nombres**. Conviene tenerla
+  montada de antemano y activarla justo al apagar el servidor. Debe reutilizar el CSS y el logo de la
+  web real para que no desentone (un **único fichero autónomo**, con el CSS y el logo embebidos, se
+  despliega sin depender de `/assets`). Sobre el hosting hay dos caminos: **GitHub Pages** con el
+  dominio redirigido, o —si el dominio ya está en **Cloudflare**— un **Cloudflare Worker** que sirve
+  el HTML desde el *edge*. En la práctica ganó el Worker: el certificado HTTPS es **instantáneo**
+  (Universal SSL del dominio), se puede **verificar y apagar el servidor el mismo día** sin esperar
+  aprovisionamientos, y revertir es trivial (apagar el proxy del registro + quitar la ruta). El
+  detalle operativo completo —construir la página, desplegar, conmutar el DNS, apagar y **reabrir al
+  año siguiente**— está en **[CIERRE-DE-EDICION.md](CIERRE-DE-EDICION.md)**.
 
 El orden natural al cerrar: (1) cargar resultados y palmarés en la BD, (2) cambiar la home a
 "terminado" + trofeos, (3) tras la entrega de trofeos, apagar el servidor y **conmutar el dominio a
-la página estática**.
+la página estática** — publicar y verificar la estática **antes** de apagar, para no dejar ni un
+minuto el dominio en blanco. Paso a paso en
+[CIERRE-DE-EDICION.md](CIERRE-DE-EDICION.md).
 
 ## Notas de operación
 
